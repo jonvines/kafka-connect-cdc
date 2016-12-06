@@ -10,8 +10,8 @@ class StructPair implements Map.Entry<Struct, Struct> {
   private final Struct value;
 
   public StructPair(SchemaPair schemaPair) {
-    this.key = new Struct(schemaPair.getKey());
-    this.value = new Struct(schemaPair.getValue());
+    this.key = new Struct(schemaPair.getKey().schema);
+    this.value = new Struct(schemaPair.getValue().schema);
   }
 
   @Override

@@ -3,6 +3,8 @@ package io.confluent.kafka.connect.cdc;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.common.utils.Time;
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,8 +20,6 @@ import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 
 public class CDCSourceTaskTest {
-
-
   CDCSourceTask sourceTask;
 
   @Before
@@ -56,8 +56,11 @@ public class CDCSourceTaskTest {
     assertFalse("records should not be empty.", records.isEmpty());
     assertEquals("records.size did not match", 3, records.size());
 
-
+    for(SourceRecord sourceRecord: records) {
+      Struct key = (Struct) sourceRecord.key();
+      key.validate();
+      Struct value = (Struct) sourceRecord.value();
+      value.validate();
+    }
   }
-
-
 }

@@ -4,27 +4,27 @@ import org.apache.kafka.connect.data.Schema;
 
 import java.util.Map;
 
-class SchemaPair implements Map.Entry<Schema, Schema> {
-  private final Schema key;
-  private final Schema value;
+class SchemaPair implements Map.Entry<SchemaAndFields, SchemaAndFields> {
+  private final SchemaAndFields key;
+  private final SchemaAndFields value;
 
-  public SchemaPair(Schema key, Schema value) {
+  public SchemaPair(SchemaAndFields key, SchemaAndFields value) {
     this.key = key;
     this.value = value;
   }
 
   @Override
-  public Schema getKey() {
+  public SchemaAndFields getKey() {
     return this.key;
   }
 
   @Override
-  public Schema getValue() {
+  public SchemaAndFields getValue() {
     return this.value;
   }
 
   @Override
-  public Schema setValue(Schema value) {
+  public SchemaAndFields setValue(SchemaAndFields value) {
     throw new UnsupportedOperationException("setValue is not supported.");
   }
 }

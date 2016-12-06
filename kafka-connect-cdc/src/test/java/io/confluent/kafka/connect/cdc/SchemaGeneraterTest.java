@@ -70,7 +70,8 @@ public class SchemaGeneraterTest {
 
   @Test
   public void generateValueSchema() {
-    Schema schema = this.schemaGenerater.generateValueSchema(this.change);
+    List<String> fieldNames = new ArrayList<>();
+    Schema schema = this.schemaGenerater.generateValueSchema(this.change, fieldNames);
     assertNotNull("schema should not be null.", schema);
     assertEquals("schema should be a struct.", Schema.Type.STRUCT, schema.type());
     assertEquals("name does not match", "com.example.cdc.testdatabase.TestTableValue", schema.name());
@@ -94,7 +95,8 @@ public class SchemaGeneraterTest {
 
   @Test
   public void generateKeySchema() {
-    Schema schema = this.schemaGenerater.generateKeySchema(this.change);
+    List<String> fieldNames = new ArrayList<>();
+    Schema schema = this.schemaGenerater.generateKeySchema(this.change, fieldNames);
     assertNotNull("schema should not be null.", schema);
     assertEquals("schema should be a struct.", Schema.Type.STRUCT, schema.type());
     assertEquals("name does not match", "com.example.cdc.testdatabase.TestTableKey", schema.name());

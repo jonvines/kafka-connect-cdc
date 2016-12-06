@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,34 +124,40 @@ class SchemaGenerater {
     return fieldName;
   }
 
-  void addFields(List<ColumnValue> columnValues, SchemaBuilder builder) {
+  void addFields(List<ColumnValue> columnValues, List<String> fieldNames, SchemaBuilder builder) {
     for(ColumnValue columnValue:columnValues) {
       String fieldName = fieldName(columnValue);
+      fieldNames.add(fieldName);
       builder.field(fieldName, columnValue.schema());
     }
   }
 
-  Schema generateValueSchema(Change change) {
+  Schema generateValueSchema(Change change, List<String> schemaFields) {
     SchemaBuilder builder = SchemaBuilder.struct();
     String schemaName = valueSchemaName(change);
     builder.name(schemaName);
-    addFields(change.valueColumns(), builder);
+    addFields(change.valueColumns(), schemaFields, builder);
     return builder.build();
   }
 
-  Schema generateKeySchema(Change change) {
+  Schema generateKeySchema(Change change, List<String> schemaFields) {
     SchemaBuilder builder = SchemaBuilder.struct();
     String schemaName = keySchemaName(change);
     builder.name(schemaName);
-    addFields(change.keyColumns(), builder);
+    addFields(change.keyColumns(), schemaFields, builder);
     return builder.build();
   }
 
 
   SchemaPair generateSchemas(Change change) {
-    Schema keySchema = generateKeySchema(change);
-    Schema valueSchema = generateValueSchema(change);
-    return new SchemaPair(keySchema, valueSchema);
+    List<String> keySchemaFields = new ArrayList<>();
+    Schema keySchema = generateKeySchema(change, keySchemaFields);
+    List<String> valueSchemaFields = new ArrayList<>();
+    Schema valueSchema = generateValueSchema(change, valueSchemaFields);
+    return new SchemaPair(
+        new SchemaAndFields(keySchema, keySchemaFields),
+        new SchemaAndFields(valueSchema, valueSchemaFields)
+    );
   }
 
   public SchemaPair get(final Change change) {

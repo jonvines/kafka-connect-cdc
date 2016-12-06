@@ -2,8 +2,6 @@ package io.confluent.kafka.connect.cdc;
 
 import org.apache.kafka.common.utils.SystemTime;
 import org.apache.kafka.common.utils.Time;
-import org.apache.kafka.connect.data.SchemaBuilder;
-import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
 import org.slf4j.Logger;
@@ -39,21 +37,50 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
     this.schemaGenerater = new SchemaGenerater(this.config);
   }
 
+  SourceRecord createRecord(SchemaPair schemaPair, Change change) {
+    StructPair structPair = new StructPair(schemaPair);
+    for(int i=0;i<schemaPair.getKey().fields.size();i++){
+      String fieldName = schemaPair.getKey().fields.get(i);
+      ColumnValue columnValue = change.keyColumns().get(i);
+      structPair.getKey().put(fieldName, columnValue.value());
+    }
+
+    for(int i=0;i<schemaPair.getValue().fields.size();i++){
+      String fieldName = schemaPair.getValue().fields.get(i);
+      ColumnValue columnValue = change.valueColumns().get(i);
+      structPair.getValue().put(fieldName, columnValue.value());
+    }
+
+    SourceRecord sourceRecord = new SourceRecord(
+        change.sourcePartition(),
+        change.sourceOffset(),
+        "topic",
+        null,
+        schemaPair.getKey().schema,
+        structPair.getKey(),
+        schemaPair.getValue().schema,
+        structPair.getValue(),
+        change.timestamp()
+    );
+
+    return sourceRecord;
+  }
+
+
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
     Change change;
     List<SourceRecord> records = new ArrayList<>(this.config.batchSize);
 
     while ((change = this.changes.poll()) != null) {
+      SchemaPair schemaPair = this.schemaGenerater.get(change);
+      SourceRecord record = createRecord(schemaPair, change);
+      records.add(record);
+
       if (records.size() >= this.config.batchSize) {
         if (log.isDebugEnabled()) {
           log.debug("Exceeded batch size of {}, returning.", records.size());
         }
-
-        SchemaPair schemaPair = this.schemaGenerater.generateSchemas(change);
-        StructPair structPair = new StructPair(schemaPair);
-
-
         break;
       }
     }
