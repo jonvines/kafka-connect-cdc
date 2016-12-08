@@ -137,6 +137,7 @@ class SchemaGenerater {
     String schemaName = valueSchemaName(change);
     builder.name(schemaName);
     addFields(change.valueColumns(), schemaFields, builder);
+    builder.field("_cdc_metadata", SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.STRING_SCHEMA));
     return builder.build();
   }
 
