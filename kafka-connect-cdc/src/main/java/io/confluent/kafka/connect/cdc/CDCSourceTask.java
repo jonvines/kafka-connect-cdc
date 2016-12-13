@@ -51,6 +51,8 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
       structPair.getValue().put(fieldName, columnValue.value());
     }
 
+    structPair.getValue().put(SchemaGenerater.METADATA_FIELD, change.metadata());
+
     SourceRecord sourceRecord = new SourceRecord(
         change.sourcePartition(),
         change.sourceOffset(),

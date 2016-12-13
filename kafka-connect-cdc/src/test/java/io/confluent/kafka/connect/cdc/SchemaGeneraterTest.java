@@ -78,7 +78,7 @@ public class SchemaGeneraterTest {
 
     List<Field> fields = schema.fields();
     assertNotNull("fields should not be null.", fields);
-    assertEquals("fields count should be the same.", this.change.valueColumns().size(), fields.size());
+    assertEquals("fields count should be the same.", this.change.valueColumns().size() + 1, fields.size());
 
     Field field = fields.get(0);
     assertEquals("fields(0).name does not match.", "firstName", field.name());

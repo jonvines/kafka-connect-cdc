@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 class SchemaGenerater {
   private static final Logger log = LoggerFactory.getLogger(SchemaGenerater.class);
+  public static final String METADATA_FIELD="_cdc_metadata";
   final CDCSourceConnectorConfig config;
   final Cache<ChangeKey, SchemaPair> schemaPairCache;
   final Configuration configuration;
@@ -137,7 +138,7 @@ class SchemaGenerater {
     String schemaName = valueSchemaName(change);
     builder.name(schemaName);
     addFields(change.valueColumns(), schemaFields, builder);
-    builder.field("_cdc_metadata", SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.STRING_SCHEMA));
+    builder.field(METADATA_FIELD, SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.STRING_SCHEMA));
     return builder.build();
   }
 
