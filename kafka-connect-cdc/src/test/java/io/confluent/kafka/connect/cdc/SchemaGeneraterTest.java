@@ -23,7 +23,7 @@ public class SchemaGeneraterTest {
 
   Change mockChange() {
     Change change = mock(Change.class);
-    when(change.sourceDatabaseName()).thenReturn(EXPECTED_SOURCE_DATABASE_NAME);
+    when(change.schemaName()).thenReturn(EXPECTED_SOURCE_DATABASE_NAME);
     when(change.tableName()).thenReturn(EXPECTED_SOURCE_TABLE_NAME);
     when(change.changeType()).thenReturn(Change.ChangeType.INSERT);
 

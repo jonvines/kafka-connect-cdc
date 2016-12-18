@@ -59,7 +59,7 @@ public class CDCSourceConnectorConfig extends AbstractConfig {
 
   public static ConfigDef config() {
     return new ConfigDef()
-        .define(NAMESPACE_CONFIG, Type.STRING, "com.example.data.${sourceDatabaseName}", Importance.HIGH, NAMESPACE_DOC)
+        .define(NAMESPACE_CONFIG, Type.STRING, "com.example.data.${schemaName}", Importance.HIGH, NAMESPACE_DOC)
         .define(LOWERCASE_COLUMN_NAMES_CONFIG, Type.BOOLEAN, false, Importance.LOW, LOWERCASE_COLUMN_NAMES_DOC)
         .define(LOWERCASE_TABLE_NAMES_CONFIG, Type.BOOLEAN, false, Importance.LOW, LOWERCASE_TABLE_NAMES_DOC)
         .define(KEY_NAME_FORMAT_CONFIG, Type.STRING, "${namespace}.${tableName}Key", Importance.MEDIUM, KEY_NAME_FORMAT_DOC)

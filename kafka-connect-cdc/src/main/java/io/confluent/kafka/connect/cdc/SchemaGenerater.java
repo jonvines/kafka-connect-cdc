@@ -81,7 +81,7 @@ class SchemaGenerater {
       values.put("namespace", namespace);
     }
 
-    values.put("sourceDatabaseName", change.sourceDatabaseName().toLowerCase());
+    values.put("schemaName", change.schemaName().toLowerCase());
     values.put("tableName", CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, change.tableName()));
     return values;
   }

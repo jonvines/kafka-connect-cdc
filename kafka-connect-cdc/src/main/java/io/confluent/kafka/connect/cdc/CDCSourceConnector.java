@@ -4,6 +4,8 @@ import org.apache.kafka.connect.source.SourceConnector;
 
 public abstract class CDCSourceConnector extends SourceConnector {
 
-
-
+  @Override
+  public String version() {
+    return VersionUtil.getVersion();
+  }
 }

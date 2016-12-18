@@ -9,7 +9,7 @@ class ChangeKey implements Comparable<ChangeKey> {
   public final String tableName;
 
   public ChangeKey(Change change) {
-    this.sourceDatabaseName = change.sourceDatabaseName();
+    this.sourceDatabaseName = change.schemaName();
     this.tableName = change.tableName();
   }
 
@@ -25,7 +25,7 @@ class ChangeKey implements Comparable<ChangeKey> {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(ChangeKey.class)
-        .add("sourceDatabaseName", this.sourceDatabaseName)
+        .add("schemaName", this.sourceDatabaseName)
         .add("tableName", this.tableName)
         .toString();
   }

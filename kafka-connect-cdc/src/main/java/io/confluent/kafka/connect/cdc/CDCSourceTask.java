@@ -96,4 +96,9 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
 
     return records;
   }
+
+  @Override
+  public String version() {
+    return VersionUtil.getVersion();
+  }
 }

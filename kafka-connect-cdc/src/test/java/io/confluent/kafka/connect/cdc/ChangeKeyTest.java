@@ -14,7 +14,7 @@ public class ChangeKeyTest {
   @Test
   public void equals() {
     Change change = mock(Change.class);
-    when(change.sourceDatabaseName()).thenReturn("SourceDatabase");
+    when(change.schemaName()).thenReturn("SourceDatabase");
     when(change.tableName()).thenReturn("ObjectOwner");
 
     final ChangeKey changeKeyThis = new ChangeKey(change);
@@ -28,7 +28,7 @@ public class ChangeKeyTest {
   @Test
   public void compareTo() {
     Change change = mock(Change.class);
-    when(change.sourceDatabaseName()).thenReturn("SourceDatabase");
+    when(change.schemaName()).thenReturn("SourceDatabase");
     when(change.tableName()).thenReturn("ObjectOwner");
 
     final ChangeKey changeKeyThis = new ChangeKey(change);
@@ -43,7 +43,7 @@ public class ChangeKeyTest {
     Map<ChangeKey, String> map = new HashMap<>();
 
     Change change = mock(Change.class);
-    when(change.sourceDatabaseName()).thenReturn("SourceDatabase");
+    when(change.schemaName()).thenReturn("SourceDatabase");
     when(change.tableName()).thenReturn("ObjectOwner");
 
     final ChangeKey changeKeyThis = new ChangeKey(change);
@@ -54,7 +54,7 @@ public class ChangeKeyTest {
   @Test
   public void tostring() {
     Change change = mock(Change.class);
-    when(change.sourceDatabaseName()).thenReturn("SourceDatabase");
+    when(change.schemaName()).thenReturn("SourceDatabase");
     when(change.tableName()).thenReturn("ObjectOwner");
 
     final ChangeKey changeKeyThis = new ChangeKey(change);
