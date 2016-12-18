@@ -13,6 +13,7 @@
 
     <modules>
         <module>kafka-connect-cdc</module>
+        <module>kafka-connect-cdc-test</module>
         <module>kafka-connect-cdc-mssql</module>
         <module>kafka-connect-cdc-mysql</module>
         <module>kafka-connect-cdc-postgres</module>
@@ -21,7 +22,7 @@
 
     <properties>
         <kafka.version>0.10.1.0-cp1</kafka.version>
-        <guava.version>18.0</guava.version>
+        <guava.version>20.0</guava.version>
     </properties>
 
     <dependencies>
