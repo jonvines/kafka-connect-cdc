@@ -2,6 +2,10 @@ package io.confluent.kafka.connect.cdc;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +28,11 @@ public class JsonChange implements Change {
   @JsonProperty
   long timestamp;
 
+  @JsonDeserialize(contentAs = JsonColumnValue.class)
   @JsonProperty
   List<ColumnValue> keyColumns = new ArrayList<>();
+
+  @JsonDeserialize(contentAs = JsonColumnValue.class)
   @JsonProperty
   List<ColumnValue> valueColumns = new ArrayList<>();
 
@@ -72,5 +79,79 @@ public class JsonChange implements Change {
   @Override
   public long timestamp() {
     return this.timestamp;
+  }
+
+
+  boolean equals(List<ColumnValue> thisList, List<ColumnValue> thatList) {
+    if (thisList.size() != thatList.size()) {
+      return false;
+    }
+
+    for (int i = 0; i < thisList.size(); i++) {
+      ColumnValue thisColumnValue = thisList.get(i);
+      ColumnValue thatColumnValue = thatList.get(i);
+      if (!thisColumnValue.equals(thatColumnValue)) {
+        return false;
+      }
+    }
+
+
+    return true;
+  }
+
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Change)) {
+      return false;
+    }
+
+    Change that = (Change) obj;
+
+    if (!this.changeType().equals(that.changeType()))
+      return false;
+    if (this.timestamp() != that.timestamp()) {
+      return false;
+    }
+    if (!this.schemaName().equals(that.schemaName()))
+      return false;
+    if (!this.tableName().equals(that.tableName()))
+      return false;
+    MapDifference<String, String> metadataDifference = Maps.difference(this.metadata(), that.metadata());
+    if (!metadataDifference.areEqual())
+      return false;
+    MapDifference<String, Object> sourceOffsetDifference = Maps.difference(this.sourceOffset(), that.sourceOffset());
+    if (!sourceOffsetDifference.areEqual())
+      return false;
+    MapDifference<String, Object> sourcePartitionDifference = Maps.difference(this.sourcePartition(), that.sourcePartition());
+    if (!sourcePartitionDifference.areEqual())
+      return false;
+
+    if (!equals(this.keyColumns(), that.keyColumns())) {
+      return false;
+    }
+
+    if (!equals(this.valueColumns(), that.valueColumns())) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this.getClass())
+        .add("schemaName", this.schemaName)
+        .add("tableName", this.tableName)
+        .add("changeType", this.changeType)
+        .add("metadata", this.metadata)
+        .add("sourcePartition", this.sourcePartition)
+        .add("sourceOffset", this.sourceOffset)
+        .add("timestamp", this.timestamp)
+        .add("keyColumns", this.keyColumns)
+        .add("valueColumns", this.valueColumns)
+
+        .omitNullValues()
+        .toString();
   }
 }

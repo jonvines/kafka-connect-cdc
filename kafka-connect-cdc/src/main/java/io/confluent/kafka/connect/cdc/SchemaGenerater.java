@@ -120,13 +120,13 @@ class SchemaGenerater {
     return renderTemplate(change, this.namespaceTemplate, null);
   }
 
-  String fieldName(ColumnValue columnValue) {
+  String fieldName(Change.ColumnValue columnValue) {
     String fieldName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, columnValue.columnName());
     return fieldName;
   }
 
-  void addFields(List<ColumnValue> columnValues, List<String> fieldNames, SchemaBuilder builder) {
-    for(ColumnValue columnValue:columnValues) {
+  void addFields(List<Change.ColumnValue> columnValues, List<String> fieldNames, SchemaBuilder builder) {
+    for(Change.ColumnValue columnValue:columnValues) {
       String fieldName = fieldName(columnValue);
       fieldNames.add(fieldName);
       builder.field(fieldName, columnValue.schema());

@@ -27,13 +27,13 @@ public class SchemaGeneraterTest {
     when(change.tableName()).thenReturn(EXPECTED_SOURCE_TABLE_NAME);
     when(change.changeType()).thenReturn(Change.ChangeType.INSERT);
 
-    List<ColumnValue> valueColumns = new ArrayList<>();
+    List<Change.ColumnValue> valueColumns = new ArrayList<>();
     TestData.addColumnValue(valueColumns, "first_name", Schema.OPTIONAL_STRING_SCHEMA, "John");
     TestData.addColumnValue(valueColumns, "last_name", Schema.OPTIONAL_STRING_SCHEMA, "Doe");
     TestData.addColumnValue(valueColumns, "email", Schema.OPTIONAL_STRING_SCHEMA, "john.doe@example.com");
     when(change.valueColumns()).thenReturn(valueColumns);
 
-    List<ColumnValue> keyColumns = new ArrayList<>();
+    List<Change.ColumnValue> keyColumns = new ArrayList<>();
     TestData.addColumnValue(keyColumns, "email", Schema.OPTIONAL_STRING_SCHEMA, "john.doe@example.com");
     when(change.keyColumns()).thenReturn(keyColumns);
 

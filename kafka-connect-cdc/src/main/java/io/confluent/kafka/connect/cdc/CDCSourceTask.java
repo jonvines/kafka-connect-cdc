@@ -41,13 +41,13 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
     StructPair structPair = new StructPair(schemaPair);
     for(int i=0;i<schemaPair.getKey().fields.size();i++){
       String fieldName = schemaPair.getKey().fields.get(i);
-      ColumnValue columnValue = change.keyColumns().get(i);
+      Change.ColumnValue columnValue = change.keyColumns().get(i);
       structPair.getKey().put(fieldName, columnValue.value());
     }
 
     for(int i=0;i<schemaPair.getValue().fields.size();i++){
       String fieldName = schemaPair.getValue().fields.get(i);
-      ColumnValue columnValue = change.valueColumns().get(i);
+      Change.ColumnValue columnValue = change.valueColumns().get(i);
       structPair.getValue().put(fieldName, columnValue.value());
     }
 

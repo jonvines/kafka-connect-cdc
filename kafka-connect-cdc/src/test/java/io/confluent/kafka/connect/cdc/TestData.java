@@ -12,8 +12,8 @@ public class TestData {
   public static final String EXPECTED_SOURCE_DATABASE_NAME = "TESTDATABASE";
   public static final String EXPECTED_SOURCE_TABLE_NAME = "TEST_TABLE";
 
-  public static void addColumnValue(List<ColumnValue> columnValues, String columnName, Schema schema, Object value) {
-    ColumnValue columnValue = mock(ColumnValue.class);
+  public static void addColumnValue(List<Change.ColumnValue> columnValues, String columnName, Schema schema, Object value) {
+    Change.ColumnValue columnValue = mock(Change.ColumnValue.class);
     when(columnValue.columnName()).thenReturn(columnName);
     when(columnValue.schema()).thenReturn(schema);
     when(columnValue.value()).thenReturn(value);
@@ -26,13 +26,13 @@ public class TestData {
     when(change.tableName()).thenReturn(EXPECTED_SOURCE_TABLE_NAME);
     when(change.changeType()).thenReturn(Change.ChangeType.INSERT);
 
-    List<ColumnValue> valueColumns = new ArrayList<>();
+    List<Change.ColumnValue> valueColumns = new ArrayList<>();
     addColumnValue(valueColumns, "first_name", Schema.OPTIONAL_STRING_SCHEMA, "John");
     addColumnValue(valueColumns, "last_name", Schema.OPTIONAL_STRING_SCHEMA, "Doe");
     addColumnValue(valueColumns, "email", Schema.OPTIONAL_STRING_SCHEMA, "john.doe@example.com");
     when(change.valueColumns()).thenReturn(valueColumns);
 
-    List<ColumnValue> keyColumns = new ArrayList<>();
+    List<Change.ColumnValue> keyColumns = new ArrayList<>();
     addColumnValue(keyColumns, "email", Schema.OPTIONAL_STRING_SCHEMA, "john.doe@example.com");
     when(change.keyColumns()).thenReturn(keyColumns);
 
