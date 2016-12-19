@@ -2,6 +2,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.confluent.kafka.connect</groupId>
+            <artifactId>kafka-connect-cdc</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+
+
+
+        <dependency>
+            <groupId>io.confluent.kafka.connect</groupId>
+            <artifactId>kafka-connect-cdc-test</artifactId>
+            <version>${parent.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <parent>
         <groupId>io.confluent.kafka.connect</groupId>
         <artifactId>kafka-connect-cdc-parent</artifactId>

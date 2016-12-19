@@ -1,11 +1,11 @@
-package io.confluent.kafka.connect.cdc.postgres;
+package io.confluent.kafka.connect.cdc;
 
 import org.apache.kafka.connect.data.Schema;
 
 import java.util.Map;
 import java.util.Set;
 
-interface TableMetadataProvider {
+public interface TableMetadataProvider {
   TableMetadata tableMetadata(String schemaName, String tableName);
 
   interface TableMetadata {

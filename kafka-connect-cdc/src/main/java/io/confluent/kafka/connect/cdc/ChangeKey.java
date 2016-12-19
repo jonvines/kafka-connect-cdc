@@ -5,19 +5,23 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
 
 class ChangeKey implements Comparable<ChangeKey> {
-  public final String sourceDatabaseName;
+  public final String schemaName;
   public final String tableName;
 
   public ChangeKey(Change change) {
-    this.sourceDatabaseName = change.schemaName();
-    this.tableName = change.tableName();
+    this(change.schemaName(), change.tableName());
+  }
+
+  public ChangeKey(String schemaName, String tableName) {
+    this.schemaName=schemaName;
+    this.tableName=tableName;
   }
 
 
   @Override
   public int compareTo(ChangeKey that) {
     return ComparisonChain.start()
-        .compare(this.sourceDatabaseName, that.sourceDatabaseName)
+        .compare(this.schemaName, that.schemaName)
         .compare(this.tableName, that.tableName)
         .result();
   }
@@ -25,7 +29,7 @@ class ChangeKey implements Comparable<ChangeKey> {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(ChangeKey.class)
-        .add("schemaName", this.sourceDatabaseName)
+        .add("schemaName", this.schemaName)
         .add("tableName", this.tableName)
         .toString();
   }
@@ -33,7 +37,7 @@ class ChangeKey implements Comparable<ChangeKey> {
   @Override
   public int hashCode() {
     return Objects.hashCode(
-        this.sourceDatabaseName,
+        this.schemaName,
         this.tableName
     );
   }

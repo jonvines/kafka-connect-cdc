@@ -25,8 +25,7 @@ public class CDCSourceConnectorConfig extends AbstractConfig {
   static final String VALUE_NAME_FORMAT_DOC = "Format used to generate the name for the value schema.";
 
   public static final String SCHEMA_CACHE_MS_CONFIG="schema.cache.ms";
-  static final String SCHEMA_CACHE_MS_DOC = "The number of milliseconds to cache a Connect schema in memory.";
-
+  static final String SCHEMA_CACHE_MS_DOC = "The number of milliseconds to cache schema metadata in memory.";
 
   public static final String BATCH_SIZE_CONFIG = "batch.size";
   static final String BATCH_SIZE_DOC = "The number of records to return in a batch.";

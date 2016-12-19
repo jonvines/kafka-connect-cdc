@@ -1,4 +1,4 @@
-package io.confluent.kafka.connect.cdc.postgres;
+package io.confluent.kafka.connect.cdc;
 
 import org.apache.kafka.connect.errors.DataException;
 import org.slf4j.Logger;
@@ -8,9 +8,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-class Utils {
-  private static final Logger log = LoggerFactory.getLogger(Utils.class);
-  public static Connection openConnection(PostgreSQLSourceConnectorConfig config) {
+public class JDBCUtils {
+  private static final Logger log = LoggerFactory.getLogger(JDBCUtils.class);
+  public static Connection openConnection(JDBCCDCSourceConnectorConfig config) {
     try {
       if(log.isInfoEnabled()) {
         log.info("Connecting to {}", config.jdbcUrl);
