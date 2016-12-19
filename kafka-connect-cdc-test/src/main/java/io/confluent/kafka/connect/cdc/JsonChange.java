@@ -2,23 +2,32 @@ package io.confluent.kafka.connect.cdc;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class JsonChange implements Change {
   @JsonProperty
-  Map<String, String> metadata;
+  Map<String, String> metadata = new LinkedHashMap<>();
   @JsonProperty
-  Map<String, Object> sourcePartition;
+  Map<String, Object> sourcePartition = new LinkedHashMap<>();
   @JsonProperty
-  Map<String, Object> sourceOffset;
+  Map<String, Object> sourceOffset = new LinkedHashMap<>();
   @JsonProperty
   String schemaName;
   @JsonProperty
@@ -153,5 +162,45 @@ public class JsonChange implements Change {
 
         .omitNullValues()
         .toString();
+  }
+
+  final static ObjectMapper objectMapper;
+
+  static {
+    objectMapper = new ObjectMapper();
+    objectMapper.configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true);
+    objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+    objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+    objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
+  }
+
+  public static void write(File file, JsonChange change) throws IOException {
+    try (OutputStream outputStream = new FileOutputStream(file)) {
+      objectMapper.writeValue(outputStream, change);
+    }
+  }
+
+  public static void write(OutputStream outputStream, JsonChange change) throws IOException {
+    objectMapper.writeValue(outputStream, change);
+  }
+
+  public static JsonChange read(InputStream inputStream) throws IOException {
+    return objectMapper.readValue(inputStream, JsonChange.class);
+  }
+
+  public void changeType(ChangeType value) {
+    this.changeType = value;
+  }
+
+  public void tableName(String value) {
+    this.tableName = value;
+  }
+
+  public void schemaName(String value) {
+    this.schemaName = value;
+  }
+
+  public void timestamp(long value) {
+    this.timestamp = value;
   }
 }

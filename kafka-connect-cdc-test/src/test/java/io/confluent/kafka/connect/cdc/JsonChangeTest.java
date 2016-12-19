@@ -34,7 +34,7 @@ public class JsonChangeTest {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
     mapper.configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true);
-
+    mapper.writeValue(System.out, expected);
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     mapper.writeValue(outputStream, expected);
     byte[] buffer = outputStream.toByteArray();
