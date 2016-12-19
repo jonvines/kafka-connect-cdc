@@ -1,7 +1,7 @@
 package io.confluent.kafka.connect.cdc;
 
 import org.apache.kafka.connect.data.Schema;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.*;
 

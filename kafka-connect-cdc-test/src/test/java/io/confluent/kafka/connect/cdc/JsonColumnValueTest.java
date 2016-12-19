@@ -3,7 +3,7 @@ package io.confluent.kafka.connect.cdc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.kafka.connect.data.Schema;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
