@@ -164,28 +164,19 @@ public class JsonChange implements Change {
         .toString();
   }
 
-  final static ObjectMapper objectMapper;
-
-  static {
-    objectMapper = new ObjectMapper();
-    objectMapper.configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true);
-    objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-    objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-    objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
-  }
 
   public static void write(File file, JsonChange change) throws IOException {
     try (OutputStream outputStream = new FileOutputStream(file)) {
-      objectMapper.writeValue(outputStream, change);
+      ObjectMapperFactory.instance.writeValue(outputStream, change);
     }
   }
 
   public static void write(OutputStream outputStream, JsonChange change) throws IOException {
-    objectMapper.writeValue(outputStream, change);
+    ObjectMapperFactory.instance.writeValue(outputStream, change);
   }
 
   public static JsonChange read(InputStream inputStream) throws IOException {
-    return objectMapper.readValue(inputStream, JsonChange.class);
+    return ObjectMapperFactory.instance.readValue(inputStream, JsonChange.class);
   }
 
   public void changeType(ChangeType value) {

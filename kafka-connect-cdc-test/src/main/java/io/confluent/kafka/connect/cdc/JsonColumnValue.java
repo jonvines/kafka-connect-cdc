@@ -13,7 +13,7 @@ public class JsonColumnValue implements Change.ColumnValue {
   @JsonProperty
   Object value;
   @JsonProperty
-  JsonConnectSchema jsonConnectSchema;
+  Schema schema;
 
   public JsonColumnValue() {
 
@@ -21,13 +21,13 @@ public class JsonColumnValue implements Change.ColumnValue {
 
   public JsonColumnValue(String columnName, Schema schema, Object value) {
     this.columnName = columnName;
-    this.jsonConnectSchema = new JsonConnectSchema(schema);
+    this.schema = schema;
     this.value = value;
   }
 
   public void schema(Schema schema) {
     Preconditions.checkNotNull(schema, "schema cannot be null");
-    this.jsonConnectSchema = new JsonConnectSchema(schema);
+    this.schema = schema;
   }
 
   @Override
@@ -37,7 +37,7 @@ public class JsonColumnValue implements Change.ColumnValue {
 
   @Override
   public Schema schema() {
-    return this.jsonConnectSchema.build();
+    return this.schema;
   }
 
   @Override
@@ -50,7 +50,7 @@ public class JsonColumnValue implements Change.ColumnValue {
     return MoreObjects.toStringHelper(this.getClass())
         .add("columnName", this.columnName)
         .add("value", this.value)
-        .add("jsonConnectSchema", this.jsonConnectSchema)
+        .add("schema", this.schema)
         .omitNullValues()
         .toString();
   }
@@ -68,7 +68,7 @@ public class JsonColumnValue implements Change.ColumnValue {
     }
 
     JsonConnectSchema otherSchema = new JsonConnectSchema(that.schema());
-    if (!this.jsonConnectSchema.equals(otherSchema)) {
+    if (!this.schema.equals(otherSchema)) {
       return false;
     }
 

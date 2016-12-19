@@ -74,8 +74,12 @@ public class JsonConnectSchema {
       builder.parameters(this.parameters);
     }
 
-    if(this.isOptional){
+    if (this.isOptional) {
       builder.optional();
+    }
+
+    if (null != this.version) {
+      builder.version(this.version);
     }
 
     return builder.build();

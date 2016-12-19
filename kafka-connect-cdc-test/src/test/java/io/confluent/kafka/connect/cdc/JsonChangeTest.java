@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import static io.confluent.kafka.connect.cdc.ChangeAssertions.assertChange;
 import static org.junit.Assert.assertEquals;
 
 public class JsonChangeTest {
@@ -31,16 +32,13 @@ public class JsonChangeTest {
         new JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
     );
 
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-    mapper.configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, true);
-    mapper.writeValue(System.out, expected);
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    mapper.writeValue(outputStream, expected);
-    byte[] buffer = outputStream.toByteArray();
-    JsonChange actual = mapper.readValue(buffer, JsonChange.class);
 
-    assertEquals(expected, actual);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    ObjectMapperFactory.instance.writeValue(outputStream, expected);
+    byte[] buffer = outputStream.toByteArray();
+    JsonChange actual = ObjectMapperFactory.instance.readValue(buffer, JsonChange.class);
+
+    assertChange(expected, actual);
   }
 
   @Test
@@ -77,7 +75,7 @@ public class JsonChangeTest {
         new JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
     );
 
-    assertEquals(thisChange, thatChange);
+    assertChange(thisChange, thatChange);
   }
 
   @Test
