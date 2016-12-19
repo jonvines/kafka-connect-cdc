@@ -19,15 +19,15 @@ public class ChangeAssertions {
 
   public static void assertSchema(final Schema expected, final Schema actual, String message) {
     String prefix = Strings.isNullOrEmpty(message) ? "" : message + ": ";
-    assertNotNull(expected, prefix + "expected should not be null.");
-    assertNotNull(actual, prefix + "actual should not be null.");
-    assertEquals(expected.name(), actual.name(), prefix + "name should match.");
-    assertEquals(expected.type(), actual.type(), prefix + "type should match.");
-    assertEquals(expected.defaultValue(), actual.defaultValue(), prefix + "defaultValue should match.");
-    assertEquals(expected.isOptional(), actual.isOptional(), prefix + "defaultValue should match.");
-    assertEquals(expected.doc(), actual.doc(), prefix + "doc should match.");
-    assertEquals(expected.version(), actual.version(), prefix + "version should match.");
-    assertMap(expected.parameters(), actual.parameters(), prefix);
+    assertNotNull(expected, prefix + "expected schema should not be null.");
+    assertNotNull(actual, prefix + "actual schema should not be null.");
+    assertEquals(expected.name(), actual.name(), prefix + "schema.name() should match.");
+    assertEquals(expected.type(), actual.type(), prefix + "schema.type() should match.");
+    assertEquals(expected.defaultValue(), actual.defaultValue(), prefix + "schema.defaultValue() should match.");
+    assertEquals(expected.isOptional(), actual.isOptional(), prefix + "schema.isOptional() should match.");
+    assertEquals(expected.doc(), actual.doc(), prefix + "schema.doc() should match.");
+    assertEquals(expected.version(), actual.version(), prefix + "schema.version() should match.");
+    assertMap(expected.parameters(), actual.parameters(), prefix + "schema.parameters() should match.");
     switch (expected.type()) {
       case ARRAY:
         assertSchema(expected.valueSchema(), actual.valueSchema(), message + "valueSchema does not match.");
@@ -76,13 +76,10 @@ public class ChangeAssertions {
       Change.ColumnValue actualColumnValue = actual.get(i);
 
       assertEquals(expectedColumnValue.columnName(), actualColumnValue.columnName(), String.format("actual.%s().get(%d).%s() does not match", method, i, "columnName"));
-      assertEquals(expectedColumnValue.value(), actualColumnValue.value(), String.format("actual.%s().get(%d).%s() does not match", method, i, "value"));
 
-      assertNotNull(expectedColumnValue.schema(), String.format("expected.%s().get(%d).%s() should not be null", method, i, "schema"));
-      assertNotNull(actualColumnValue.schema(), String.format("actual.%s().get(%d).%s() should not be null", method, i, "schema"));
-      assertEquals(expectedColumnValue.schema().name(), actualColumnValue.schema().name(), String.format("actual.%s().get(%d).%s() does not match", method, i, "schema().name"));
-      assertEquals(expectedColumnValue.schema().type(), actualColumnValue.schema().type(), String.format("actual.%s().get(%d).%s() does not match", method, i, "schema().type"));
-      assertEquals(expectedColumnValue.schema().isOptional(), actualColumnValue.schema().isOptional(), String.format("actual.%s().get(%d).%s() does not match", method, i, "schema().isOptional"));
+      assertSchema(expectedColumnValue.schema(), actualColumnValue.schema(), String.format("actual.%s().get(%d).%s() does not match.", method, i, "schema"));
+
+//      assertEquals(expectedColumnValue.value(), actualColumnValue.value(), String.format("actual.%s().get(%d).%s() does not match", method, i, "value"));
     }
 
   }
