@@ -27,8 +27,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 class SchemaGenerater {
+  public static final String METADATA_FIELD = "_cdc_metadata";
   private static final Logger log = LoggerFactory.getLogger(SchemaGenerater.class);
-  public static final String METADATA_FIELD="_cdc_metadata";
   final CDCSourceConnectorConfig config;
   final Cache<ChangeKey, SchemaPair> schemaPairCache;
   final Configuration configuration;
@@ -126,7 +126,7 @@ class SchemaGenerater {
   }
 
   void addFields(List<Change.ColumnValue> columnValues, List<String> fieldNames, SchemaBuilder builder) {
-    for(Change.ColumnValue columnValue:columnValues) {
+    for (Change.ColumnValue columnValue : columnValues) {
       String fieldName = fieldName(columnValue);
       fieldNames.add(fieldName);
       builder.field(fieldName, columnValue.schema());

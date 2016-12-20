@@ -101,5 +101,14 @@ public class ChangeAssertions {
     assertColumns(expected.valueColumns(), actual.valueColumns(), "valueColumns");
   }
 
+  public static void assertTableMetadata(TableMetadataProvider.TableMetadata expected, TableMetadataProvider.TableMetadata actual) {
+    assertTableMetadata(expected, actual, null);
+  }
+
+  public static void assertTableMetadata(TableMetadataProvider.TableMetadata expected, TableMetadataProvider.TableMetadata actual, String message) {
+    String prefix = Strings.isNullOrEmpty(message) ? "" : message + ": ";
+    assertNotNull(expected, prefix + "expected should not be null.");
+    assertNotNull(actual, prefix + "actual should not be null.");
+  }
 
 }

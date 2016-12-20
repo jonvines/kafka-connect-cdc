@@ -75,9 +75,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.palantir.docker.compose</groupId>
-            <artifactId>docker-compose-rule</artifactId>
-            <version>0.28.1</version>
+            <groupId>io.codearte.jfairy</groupId>
+            <artifactId>jfairy</artifactId>
+            <version>0.5.5</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

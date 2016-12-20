@@ -81,18 +81,21 @@ public interface Change {
   interface ColumnValue {
     /**
      * Name of the column.
+     *
      * @return
      */
     String columnName();
 
     /**
      * Schema for the data.
+     *
      * @return
      */
     Schema schema();
 
     /**
      * Value for the data.
+     *
      * @return
      */
     Object value();

@@ -8,22 +8,27 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class JDBCUtils {
-  private static final Logger log = LoggerFactory.getLogger(JDBCUtils.class);
-  public static Connection openConnection(JDBCCDCSourceConnectorConfig config) {
+public class JdbcUtils {
+  private static final Logger log = LoggerFactory.getLogger(JdbcUtils.class);
+
+  public static Connection openConnection(JdbcCDCSourceConnectorConfig config) {
+    return openConnection(config.jdbcUrl, config.jdbcUsername, config.jdbcPassword);
+  }
+
+  public static Connection openConnection(String jdbcUrl, String jdbcUsername, String jdbcPassword) {
     try {
-      if(log.isInfoEnabled()) {
-        log.info("Connecting to {}", config.jdbcUrl);
+      if (log.isInfoEnabled()) {
+        log.info("Connecting to {} as {}.", jdbcUrl, jdbcUsername);
       }
-      return DriverManager.getConnection(config.jdbcUrl, config.jdbcUsername, config.jdbcPassword);
+      return DriverManager.getConnection(jdbcUrl, jdbcUsername, jdbcPassword);
     } catch (SQLException ex) {
       throw new DataException("Exception thrown while connecting to postgres.", ex);
     }
   }
 
   public static void closeConnection(Connection connection) {
-    try{
-      if(log.isInfoEnabled()){
+    try {
+      if (log.isInfoEnabled()) {
         log.info("closing...");
       }
       connection.close();

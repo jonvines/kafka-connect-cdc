@@ -4,7 +4,7 @@ import org.apache.kafka.common.config.ConfigDef;
 
 import java.util.Map;
 
-public class JDBCCDCSourceConnectorConfig extends CDCSourceConnectorConfig {
+public class JdbcCDCSourceConnectorConfig extends CDCSourceConnectorConfig {
   public static final String JDBC_USERNAME_CONF = "jdbc.username";
   public static final String JDBC_PASSWORD_CONF = "jdbc.password";
   public static final String JDBC_URL_CONF = "jdbc.url";
@@ -16,7 +16,7 @@ public class JDBCCDCSourceConnectorConfig extends CDCSourceConnectorConfig {
   public final String jdbcUsername;
   public final String jdbcPassword;
 
-  public JDBCCDCSourceConnectorConfig(ConfigDef definition, Map<?, ?> originals) {
+  public JdbcCDCSourceConnectorConfig(ConfigDef definition, Map<?, ?> originals) {
     super(definition, originals);
     this.jdbcUrl = this.getString(JDBC_URL_CONF);
     this.jdbcUsername = this.getString(JDBC_USERNAME_CONF);

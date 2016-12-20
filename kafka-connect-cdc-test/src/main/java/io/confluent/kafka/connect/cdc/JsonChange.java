@@ -2,9 +2,6 @@ package io.confluent.kafka.connect.cdc;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.MapDifference;
@@ -44,6 +41,20 @@ public class JsonChange implements Change {
   @JsonDeserialize(contentAs = JsonColumnValue.class)
   @JsonProperty
   List<ColumnValue> valueColumns = new ArrayList<>();
+
+  public static void write(File file, JsonChange change) throws IOException {
+    try (OutputStream outputStream = new FileOutputStream(file)) {
+      ObjectMapperFactory.instance.writeValue(outputStream, change);
+    }
+  }
+
+  public static void write(OutputStream outputStream, JsonChange change) throws IOException {
+    ObjectMapperFactory.instance.writeValue(outputStream, change);
+  }
+
+  public static JsonChange read(InputStream inputStream) throws IOException {
+    return ObjectMapperFactory.instance.readValue(inputStream, JsonChange.class);
+  }
 
   @Override
   public Map<String, String> metadata() {
@@ -90,7 +101,6 @@ public class JsonChange implements Change {
     return this.timestamp;
   }
 
-
   boolean equals(List<ColumnValue> thisList, List<ColumnValue> thatList) {
     if (thisList.size() != thatList.size()) {
       return false;
@@ -107,7 +117,6 @@ public class JsonChange implements Change {
 
     return true;
   }
-
 
   @Override
   public boolean equals(Object obj) {
@@ -162,21 +171,6 @@ public class JsonChange implements Change {
 
         .omitNullValues()
         .toString();
-  }
-
-
-  public static void write(File file, JsonChange change) throws IOException {
-    try (OutputStream outputStream = new FileOutputStream(file)) {
-      ObjectMapperFactory.instance.writeValue(outputStream, change);
-    }
-  }
-
-  public static void write(OutputStream outputStream, JsonChange change) throws IOException {
-    ObjectMapperFactory.instance.writeValue(outputStream, change);
-  }
-
-  public static JsonChange read(InputStream inputStream) throws IOException {
-    return ObjectMapperFactory.instance.readValue(inputStream, JsonChange.class);
   }
 
   public void changeType(ChangeType value) {

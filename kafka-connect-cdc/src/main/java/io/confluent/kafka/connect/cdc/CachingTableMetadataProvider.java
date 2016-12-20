@@ -4,21 +4,26 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.kafka.connect.errors.DataException;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public abstract class CachingTableMetadataProvider implements TableMetadataProvider {
-  final CDCSourceConnectorConfig config;
+  final JdbcCDCSourceConnectorConfig config;
   final Cache<ChangeKey, TableMetadata> tableMetadataCache;
 
-  public CachingTableMetadataProvider(CDCSourceConnectorConfig config) {
+  public CachingTableMetadataProvider(JdbcCDCSourceConnectorConfig config) {
     this.config = config;
     this.tableMetadataCache = CacheBuilder
         .newBuilder()
         .expireAfterWrite(config.schemaCacheMs, TimeUnit.MILLISECONDS)
         .build();
+  }
+
+  protected Connection openConnection() throws SQLException {
+    return JdbcUtils.openConnection(this.config);
   }
 
   protected abstract TableMetadata fetchTableMetadata(String schemaName, String tableName) throws SQLException;

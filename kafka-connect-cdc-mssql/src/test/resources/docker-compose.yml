@@ -1,6 +1,6 @@
 version: "2"
 services:
-  postgres:
+  mssql:
     image: microsoft/mssql-server-linux
     environment:
       ACCEPT_EULA: 'Y'

@@ -13,8 +13,8 @@ class ChangeKey implements Comparable<ChangeKey> {
   }
 
   public ChangeKey(String schemaName, String tableName) {
-    this.schemaName=schemaName;
-    this.tableName=tableName;
+    this.schemaName = schemaName;
+    this.tableName = tableName;
   }
 
 

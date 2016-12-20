@@ -10,8 +10,11 @@ public interface TableMetadataProvider {
 
   interface TableMetadata {
     String schemaName();
+
     String tableName();
+
     Set<String> keyColumns();
+
     Map<String, Schema> columnSchemas();
   }
 

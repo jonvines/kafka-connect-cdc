@@ -2,13 +2,14 @@ package io.confluent.kafka.connect.cdc;
 
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +41,7 @@ public class SchemaGeneraterTest {
     return change;
   }
 
-  @Before
+  @BeforeAll
   public void before() {
     CDCSourceConnectorConfig config = new CDCSourceConnectorConfig(CDCSourceConnectorConfig.config(), CDCSourceConnectorConfigTest.settings());
     this.schemaGenerater = new SchemaGenerater(config);
@@ -72,42 +73,42 @@ public class SchemaGeneraterTest {
   public void generateValueSchema() {
     List<String> fieldNames = new ArrayList<>();
     Schema schema = this.schemaGenerater.generateValueSchema(this.change, fieldNames);
-    assertNotNull("schema should not be null.", schema);
-    assertEquals("schema should be a struct.", Schema.Type.STRUCT, schema.type());
+    assertNotNull(schema, "schema should not be null.");
+    assertEquals(Schema.Type.STRUCT, schema.type(), "schema should be a struct.");
     assertEquals("name does not match", "com.example.cdc.testdatabase.TestTableValue", schema.name());
 
     List<Field> fields = schema.fields();
-    assertNotNull("fields should not be null.", fields);
-    assertEquals("fields count should be the same.", this.change.valueColumns().size() + 1, fields.size());
+    assertNotNull(fields, "fields should not be null.");
+    assertEquals(this.change.valueColumns().size() + 1, fields.size(), "fields count should be the same.");
 
     Field field = fields.get(0);
     assertEquals("fields(0).name does not match.", "firstName", field.name());
-    assertEquals("fields(0).schema does not match.", Schema.Type.STRING, field.schema().type());
+    assertEquals(Schema.Type.STRING, field.schema().type(), "fields(0).schema does not match.");
 
     field = fields.get(1);
     assertEquals("fields(1).name does not match.", "lastName", field.name());
-    assertEquals("fields(1).schema does not match.", Schema.Type.STRING, field.schema().type());
+    assertEquals(Schema.Type.STRING, field.schema().type(), "fields(1).schema does not match.");
 
     field = fields.get(2);
     assertEquals("fields(2).name does not match.", "email", field.name());
-    assertEquals("fields(2).schema does not match.", Schema.Type.STRING, field.schema().type());
+    assertEquals(Schema.Type.STRING, field.schema().type(), "fields(2).schema does not match.");
   }
 
   @Test
   public void generateKeySchema() {
     List<String> fieldNames = new ArrayList<>();
     Schema schema = this.schemaGenerater.generateKeySchema(this.change, fieldNames);
-    assertNotNull("schema should not be null.", schema);
-    assertEquals("schema should be a struct.", Schema.Type.STRUCT, schema.type());
+    assertNotNull(schema, "schema should not be null.");
+    assertEquals(Schema.Type.STRUCT, schema.type(), "schema should be a struct.");
     assertEquals("name does not match", "com.example.cdc.testdatabase.TestTableKey", schema.name());
 
     List<Field> fields = schema.fields();
-    assertNotNull("fields should not be null.", fields);
-    assertEquals("fields count should be the same.", this.change.keyColumns().size(), fields.size());
+    assertNotNull(fields, "fields should not be null.");
+    assertEquals(this.change.keyColumns().size(), fields.size(), "fields count should be the same.");
 
     Field field = fields.get(0);
     assertEquals("fields(0).name does not match.", "email", field.name());
-    assertEquals("fields(0).schema does not match.", Schema.Type.STRING, field.schema().type());
+    assertEquals(Schema.Type.STRING, field.schema().type(), "fields(0).schema does not match.");
   }
 
 }

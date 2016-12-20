@@ -1,12 +1,9 @@
 package io.confluent.kafka.connect.cdc;
 
-import com.google.common.base.CaseFormat;
-import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.common.utils.Time;
-import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -15,14 +12,14 @@ import org.mockito.stubbing.Answer;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 
 public class CDCSourceTaskTest {
   CDCSourceTask sourceTask;
 
-  @Before
+  @BeforeAll
   public void before() {
     this.sourceTask = mock(CDCSourceTask.class, Mockito.CALLS_REAL_METHODS);
     this.sourceTask.time = mock(Time.class);
@@ -52,11 +49,11 @@ public class CDCSourceTaskTest {
     this.sourceTask.addChange(TestData.change());
 
     List<SourceRecord> records = this.sourceTask.poll();
-    assertNotNull("records should not be null", records);
-    assertFalse("records should not be empty.", records.isEmpty());
-    assertEquals("records.size did not match", 3, records.size());
+    assertNotNull(records, "records should not be null");
+    assertFalse(records.isEmpty(), "records should not be empty.");
+    assertEquals(3, records.size(), "records.size did not match");
 
-    for(SourceRecord sourceRecord: records) {
+    for (SourceRecord sourceRecord : records) {
       Struct key = (Struct) sourceRecord.key();
       key.validate();
       Struct value = (Struct) sourceRecord.value();

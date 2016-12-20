@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 public class JsonConnectSchemaTest {
 
   @Test
-  public void equalsNull(){
+  public void equalsNull() {
     JsonConnectSchema a = new JsonConnectSchema(Schema.INT32_SCHEMA);
     assertFalse(a.equals(null));
   }

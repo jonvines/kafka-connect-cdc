@@ -1,7 +1,5 @@
 package io.confluent.kafka.connect.cdc;
 
-import org.apache.kafka.connect.data.Schema;
-
 import java.util.Map;
 
 class SchemaPair implements Map.Entry<SchemaAndFields, SchemaAndFields> {

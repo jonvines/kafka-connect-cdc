@@ -14,11 +14,10 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> extends SourceTask {
   private static final Logger log = LoggerFactory.getLogger(CDCSourceTask.class);
-  private ConcurrentLinkedDeque<Change> changes;
   protected Conf config;
   protected Time time = new SystemTime();
-
   SchemaGenerater schemaGenerater;
+  private ConcurrentLinkedDeque<Change> changes;
 
   protected abstract Conf getConfig(Map<String, String> map);
 
@@ -39,13 +38,13 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
 
   SourceRecord createRecord(SchemaPair schemaPair, Change change) {
     StructPair structPair = new StructPair(schemaPair);
-    for(int i=0;i<schemaPair.getKey().fields.size();i++){
+    for (int i = 0; i < schemaPair.getKey().fields.size(); i++) {
       String fieldName = schemaPair.getKey().fields.get(i);
       Change.ColumnValue columnValue = change.keyColumns().get(i);
       structPair.getKey().put(fieldName, columnValue.value());
     }
 
-    for(int i=0;i<schemaPair.getValue().fields.size();i++){
+    for (int i = 0; i < schemaPair.getValue().fields.size(); i++) {
       String fieldName = schemaPair.getValue().fields.get(i);
       Change.ColumnValue columnValue = change.valueColumns().get(i);
       structPair.getValue().put(fieldName, columnValue.value());
