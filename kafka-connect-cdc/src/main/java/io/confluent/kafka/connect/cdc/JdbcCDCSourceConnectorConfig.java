@@ -8,9 +8,9 @@ public class JdbcCDCSourceConnectorConfig extends CDCSourceConnectorConfig {
   public static final String JDBC_USERNAME_CONF = "jdbc.username";
   public static final String JDBC_PASSWORD_CONF = "jdbc.password";
   public static final String JDBC_URL_CONF = "jdbc.url";
-  static final String JDBC_USERNAME_DOC = "JDBC Username to connect to Oracle with.";
-  static final String JDBC_PASSWORD_DOC = "JDBC Password to connect to Oracle with.";
-  static final String JDBC_URL_DOC = "JDBC Url to connect to oracle with. You should not inline your username and password.";
+  static final String JDBC_USERNAME_DOC = "JDBC Username to connect to the database with.";
+  static final String JDBC_PASSWORD_DOC = "JDBC Password to connect to the database with.";
+  static final String JDBC_URL_DOC = "JDBC Url to connect to oracle with. You should never inline your username and password.";
 
   public final String jdbcUrl;
   public final String jdbcUsername;

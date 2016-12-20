@@ -5,6 +5,7 @@ import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import io.confluent.kafka.connect.cdc.TestDataUtils;
 import io.confluent.kafka.connect.cdc.mssql.model.MsSqlTableMetadataProviderTestData;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -17,6 +18,7 @@ import static io.confluent.kafka.connect.cdc.ChangeAssertions.assertTableMetadat
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
+@Disabled
 public class MsSqlTableMetadataProviderTest extends DockerTest {
   MsSqlSourceConnectorConfig config;
   TableMetadataProvider tableMetadataProvider;

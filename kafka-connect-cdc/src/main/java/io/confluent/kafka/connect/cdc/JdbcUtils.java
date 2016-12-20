@@ -11,6 +11,9 @@ import java.sql.SQLException;
 public class JdbcUtils {
   private static final Logger log = LoggerFactory.getLogger(JdbcUtils.class);
 
+  private JdbcUtils() {
+  }
+
   public static Connection openConnection(JdbcCDCSourceConnectorConfig config) {
     return openConnection(config.jdbcUrl, config.jdbcUsername, config.jdbcPassword);
   }

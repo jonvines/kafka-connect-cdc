@@ -26,6 +26,8 @@ public class JsonChange implements Change {
   @JsonProperty
   Map<String, Object> sourceOffset = new LinkedHashMap<>();
   @JsonProperty
+  String databaseName;
+  @JsonProperty
   String schemaName;
   @JsonProperty
   String tableName;
@@ -69,6 +71,11 @@ public class JsonChange implements Change {
   @Override
   public Map<String, Object> sourceOffset() {
     return this.sourceOffset;
+  }
+
+  @Override
+  public String databaseName() {
+    return this.databaseName;
   }
 
   @Override

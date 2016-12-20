@@ -19,6 +19,12 @@ public interface Change {
   Map<String, Object> sourceOffset();
 
   /**
+   * Name of the database where the change originated from.
+   * @return
+   */
+  String databaseName();
+
+  /**
    * Schema where the change originated from.
    *
    * @return
