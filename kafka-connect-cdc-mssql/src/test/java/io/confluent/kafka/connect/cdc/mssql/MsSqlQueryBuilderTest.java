@@ -32,7 +32,7 @@ public class MsSqlQueryBuilderTest {
     when(tableMetadata.tableName()).thenReturn("users");
     when(tableMetadata.schemaName()).thenReturn("dbo");
 
-    MsSqlQueryBuilder builder = new MsSqlQueryBuilder(this.connection, tableMetadata);
+    MsSqlQueryBuilder builder = new MsSqlQueryBuilder(this.connection);
 
     final String expected = "SELECT " +
         "[ct].[sys_change_version] AS [__metadata_sys_change_version], " +
@@ -45,7 +45,7 @@ public class MsSqlQueryBuilderTest {
         "ON " +
         "[ct].[user_id] = [u].[user_id]";
 
-    final String actual = builder.changeTrackingStatementQuery();
+    final String actual = builder.changeTrackingStatementQuery(tableMetadata);
     assertEquals(expected, actual, "Query should match.");
   }
 
@@ -56,7 +56,7 @@ public class MsSqlQueryBuilderTest {
     when(tableMetadata.tableName()).thenReturn("users");
     when(tableMetadata.schemaName()).thenReturn("dbo");
 
-    MsSqlQueryBuilder builder = new MsSqlQueryBuilder(this.connection, tableMetadata);
+    MsSqlQueryBuilder builder = new MsSqlQueryBuilder(this.connection);
 
     final String expected = "SELECT " +
         "[ct].[sys_change_version] AS [__metadata_sys_change_version], " +
@@ -70,7 +70,7 @@ public class MsSqlQueryBuilderTest {
         "[ct].[first_key] = [u].[first_key] AND " +
         "[ct].[second_key] = [u].[second_key]";
 
-    final String actual = builder.changeTrackingStatementQuery();
+    final String actual = builder.changeTrackingStatementQuery(tableMetadata);
     assertEquals(expected, actual, "Query should match.");
   }
 

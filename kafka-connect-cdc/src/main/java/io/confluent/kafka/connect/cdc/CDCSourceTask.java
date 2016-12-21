@@ -20,7 +20,7 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
   private static final Logger log = LoggerFactory.getLogger(CDCSourceTask.class);
   protected Conf config;
   protected Time time = new SystemTime();
-  SchemaGenerater schemaGenerater;
+  SchemaGenerator schemaGenerator;
   private SourceRecordConcurrentLinkedDeque changes;
 
   protected abstract Conf getConfig(Map<String, String> map);
@@ -58,7 +58,7 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
     metadata.putAll(change.metadata());
     metadata.put("schemaName", change.schemaName());
     metadata.put("tableName", change.tableName());
-    setStructField(structPair.getValue(), SchemaGenerater.METADATA_FIELD, change.metadata());
+    setStructField(structPair.getValue(), Constants.METADATA_FIELD, change.metadata());
 
     //TODO: Correct topic pattern
 
@@ -87,7 +87,7 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
       }
       return;
     }
-    SchemaPair schemaPair = this.schemaGenerater.get(change);
+    SchemaPair schemaPair = this.schemaGenerator.get(change);
     SourceRecord record = createRecord(schemaPair, change);
     this.changes.add(record);
   }
@@ -96,7 +96,7 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
   public void start(Map<String, String> map) {
     this.config = getConfig(map);
     this.changes = new SourceRecordConcurrentLinkedDeque(this.config.batchSize, this.config.backoffTimeMs);
-    this.schemaGenerater = new SchemaGenerater(this.config);
+    this.schemaGenerator = new SchemaGenerator(this.config);
   }
 
 

@@ -78,7 +78,7 @@ public class DockerTest {
 
   @AfterAll
   public static void dockerCleanup() throws IOException, InterruptedException {
-    docker.after();
+//    docker.after();
   }
 
 

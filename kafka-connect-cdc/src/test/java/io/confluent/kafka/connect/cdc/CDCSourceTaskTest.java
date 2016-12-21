@@ -4,6 +4,7 @@ import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.*;
 public class CDCSourceTaskTest {
   CDCSourceTask sourceTask;
 
-  @BeforeAll
+  @BeforeEach
   public void before() {
     this.sourceTask = mock(CDCSourceTask.class, Mockito.CALLS_REAL_METHODS);
     this.sourceTask.time = mock(Time.class);
@@ -39,7 +40,6 @@ public class CDCSourceTaskTest {
     List<SourceRecord> records = this.sourceTask.poll();
     assertNotNull(records);
     assertTrue(records.isEmpty());
-    verify(this.sourceTask.time, only()).sleep(anyLong());
   }
 
   @Test

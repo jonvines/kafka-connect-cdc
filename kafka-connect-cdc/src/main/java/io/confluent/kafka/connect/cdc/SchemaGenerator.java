@@ -1,9 +1,11 @@
 package io.confluent.kafka.connect.cdc;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.core.InvalidReferenceException;
 import freemarker.template.Configuration;
@@ -26,11 +28,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-class SchemaGenerater {
-  public static final String METADATA_FIELD = "_cdc_metadata";
-  private static final Logger log = LoggerFactory.getLogger(SchemaGenerater.class);
+class SchemaGenerator {
+  private static final Logger log = LoggerFactory.getLogger(SchemaGenerator.class);
   final CDCSourceConnectorConfig config;
   final Cache<ChangeKey, SchemaPair> schemaPairCache;
+  final Cache<ChangeKey, String> topicNameCache;
   final Configuration configuration;
   final StringTemplateLoader loader;
 
@@ -39,9 +41,12 @@ class SchemaGenerater {
   final Template valueTemplate;
 
 
-  public SchemaGenerater(CDCSourceConnectorConfig config) {
+  public SchemaGenerator(CDCSourceConnectorConfig config) {
     this.config = config;
     this.schemaPairCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(this.config.schemaCacheMs, TimeUnit.MILLISECONDS)
+        .build();
+    this.topicNameCache = CacheBuilder.newBuilder()
         .expireAfterWrite(this.config.schemaCacheMs, TimeUnit.MILLISECONDS)
         .build();
 
@@ -75,14 +80,69 @@ class SchemaGenerater {
     }
   }
 
-  Map<String, String> values(Change change, String namespace) {
-    Map<String, String> values = new HashMap<>();
-    if (!Strings.isNullOrEmpty(namespace)) {
-      values.put("namespace", namespace);
+  static String convertCase(String text, CDCSourceConnectorConfig.CaseFormat inputCaseFormat, CDCSourceConnectorConfig.CaseFormat outputCaseFormat) {
+    if(Strings.isNullOrEmpty(text)) {
+      return "";
+    }
+    if(CDCSourceConnectorConfig.CaseFormat.LOWER == outputCaseFormat) {
+      return text.toLowerCase();
+    } else if(CDCSourceConnectorConfig.CaseFormat.UPPER == outputCaseFormat) {
+      return text.toUpperCase();
+    } else if(CDCSourceConnectorConfig.CaseFormat.NONE == outputCaseFormat) {
+      return text;
     }
 
-    values.put("schemaName", change.schemaName().toLowerCase());
-    values.put("tableName", CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, change.tableName()));
+    CaseFormat inputFormat = caseFormat(inputCaseFormat);
+    CaseFormat outputFormat = caseFormat(outputCaseFormat);
+
+    return inputFormat.to(outputFormat, text);
+  }
+
+  private static CaseFormat caseFormat(CDCSourceConnectorConfig.CaseFormat inputCaseFormat) {
+    CaseFormat inputFormat;
+    switch (inputCaseFormat) {
+      case LOWER_CAMEL:
+        inputFormat = CaseFormat.LOWER_CAMEL;
+        break;
+      case LOWER_HYPHEN:
+        inputFormat = CaseFormat.LOWER_HYPHEN;
+        break;
+      case LOWER_UNDERSCORE:
+        inputFormat = CaseFormat.LOWER_UNDERSCORE;
+        break;
+      case UPPER_CAMEL:
+        inputFormat = CaseFormat.UPPER_CAMEL;
+        break;
+      case UPPER_UNDERSCORE:
+        inputFormat = CaseFormat.UPPER_UNDERSCORE;
+        break;
+      default:
+        throw new UnsupportedOperationException(
+            String.format("'%s' is not a supported case format.", inputCaseFormat)
+        );
+    }
+    return inputFormat;
+  }
+
+  Map<String, String> values(Change change, String namespace) {
+    Map<String, String> values = new HashMap<>(Strings.isNullOrEmpty(namespace) ? 3 : 4);
+
+    values.put(
+        Constants.NAMESPACE_VARIABLE,
+        convertCase(namespace, CDCSourceConnectorConfig.CaseFormat.NONE, CDCSourceConnectorConfig.CaseFormat.NONE)
+    );
+    values.put(
+        Constants.DATABASE_NAME_VARIABLE,
+        convertCase(change.databaseName(), this.config.schemaInputFormat, this.config.schemaDatabaseNameFormat)
+    );
+    values.put(
+        Constants.SCHEMA_NAME_VARIABLE,
+        convertCase(change.schemaName(), this.config.schemaInputFormat, this.config.schemaSchemaNameFormat)
+    );
+    values.put(
+        Constants.TABLE_NAME_VARIABLE,
+        convertCase(change.tableName(), this.config.schemaInputFormat, this.config.schemaTableNameFormat)
+    );
     return values;
   }
 
@@ -121,12 +181,21 @@ class SchemaGenerater {
   }
 
   String fieldName(Change.ColumnValue columnValue) {
-    String fieldName = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, columnValue.columnName());
+    String fieldName = convertCase(columnValue.columnName(), this.config.schemaInputFormat, this.config.schemaColumnNameFormat);
     return fieldName;
   }
 
   void addFields(List<Change.ColumnValue> columnValues, List<String> fieldNames, SchemaBuilder builder) {
     for (Change.ColumnValue columnValue : columnValues) {
+      Preconditions.checkNotNull(columnValue.schema(), "schema() for %s cannot be null", columnValue.columnName());
+      Preconditions.checkNotNull(columnValue.schema().parameters(), "schema().parameters() for %s cannot be null", columnValue.columnName());
+
+      Preconditions.checkState(
+          columnValue.schema().parameters().containsKey(Change.ColumnValue.COLUMN_NAME),
+          "The schema.parameters() for field(%s) does not contain a value for %s.",
+          columnValue.columnName(),
+          Change.ColumnValue.COLUMN_NAME
+      );
       String fieldName = fieldName(columnValue);
       fieldNames.add(fieldName);
       builder.field(fieldName, columnValue.schema());
@@ -138,7 +207,14 @@ class SchemaGenerater {
     String schemaName = valueSchemaName(change);
     builder.name(schemaName);
     addFields(change.valueColumns(), schemaFields, builder);
-    builder.field(METADATA_FIELD, SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.STRING_SCHEMA));
+    builder.field(Constants.METADATA_FIELD, SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.STRING_SCHEMA));
+    builder.parameters(
+        ImmutableMap.of(
+            Change.DATABASE_NAME, change.databaseName(),
+            Change.SCHEMA_NAME, change.schemaName(),
+            Change.TABLE_NAME, change.tableName()
+        )
+    );
     return builder.build();
   }
 
@@ -147,6 +223,13 @@ class SchemaGenerater {
     String schemaName = keySchemaName(change);
     builder.name(schemaName);
     addFields(change.keyColumns(), schemaFields, builder);
+    builder.parameters(
+        ImmutableMap.of(
+            Change.DATABASE_NAME, change.databaseName(),
+            Change.SCHEMA_NAME, change.schemaName(),
+            Change.TABLE_NAME, change.tableName()
+        )
+    );
     return builder.build();
   }
 
@@ -164,9 +247,8 @@ class SchemaGenerater {
 
   public SchemaPair get(final Change change) {
     ChangeKey changeKey = new ChangeKey(change);
-    SchemaPair result = null;
     try {
-      result = this.schemaPairCache.get(changeKey, new Callable<SchemaPair>() {
+      return this.schemaPairCache.get(changeKey, new Callable<SchemaPair>() {
         @Override
         public SchemaPair call() throws Exception {
           return generateSchemas(change);
@@ -175,8 +257,6 @@ class SchemaGenerater {
     } catch (ExecutionException e) {
       throw new DataException("Exception thrown while building schemas.", e);
     }
-
-    return result;
   }
 
 }

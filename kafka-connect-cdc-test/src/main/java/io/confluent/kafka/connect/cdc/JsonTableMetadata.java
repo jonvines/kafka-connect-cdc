@@ -10,6 +10,7 @@ import java.util.Set;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JsonTableMetadata implements TableMetadataProvider.TableMetadata {
+  String databaseName;
   String schemaName;
   String tableName;
   Set<String> keyColumns;
@@ -23,6 +24,15 @@ public class JsonTableMetadata implements TableMetadataProvider.TableMetadata {
     this.tableName = tableName;
     this.keyColumns = keyColumns;
     this.columnSchemas = columnSchemas;
+  }
+
+  @Override
+  public String databaseName() {
+    return this.databaseName;
+  }
+
+  public void databaseName(String databaseName) {
+    this.databaseName = databaseName;
   }
 
   @Override

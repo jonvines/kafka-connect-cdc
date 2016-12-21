@@ -43,7 +43,7 @@ public class MsSqlTableMetadataProviderTest extends DockerTest {
 
   private void tableMetadata(MsSqlTableMetadataProviderTestData data) {
     assertNotNull(data, "data should not be null.");
-    TableMetadataProvider.TableMetadata actual = this.tableMetadataProvider.tableMetadata("dbo", "users");
+    TableMetadataProvider.TableMetadata actual = this.tableMetadataProvider.tableMetadata("cdc_testing","dbo", "users");
     assertTableMetadata(data.expected(), actual);
   }
 }

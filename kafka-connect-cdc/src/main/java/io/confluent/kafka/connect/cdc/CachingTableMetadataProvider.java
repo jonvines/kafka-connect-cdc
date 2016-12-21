@@ -26,16 +26,16 @@ public abstract class CachingTableMetadataProvider implements TableMetadataProvi
     return JdbcUtils.openConnection(this.config);
   }
 
-  protected abstract TableMetadata fetchTableMetadata(String schemaName, String tableName) throws SQLException;
+  protected abstract TableMetadata fetchTableMetadata(String databaseName, String schemaName, String tableName) throws SQLException;
 
   @Override
-  public TableMetadata tableMetadata(String schemaName, String tableName) {
-    final ChangeKey changeKey = new ChangeKey(schemaName, tableName);
+  public TableMetadata tableMetadata(String databaseName, String schemaName, String tableName) {
+    final ChangeKey changeKey = new ChangeKey(databaseName, schemaName, tableName);
     try {
       return this.tableMetadataCache.get(changeKey, new Callable<TableMetadata>() {
         @Override
         public TableMetadata call() throws Exception {
-          return fetchTableMetadata(schemaName, tableName);
+          return fetchTableMetadata(databaseName, schemaName, tableName);
         }
       });
 

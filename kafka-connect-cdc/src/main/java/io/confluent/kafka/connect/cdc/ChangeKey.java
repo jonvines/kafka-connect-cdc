@@ -3,16 +3,20 @@ package io.confluent.kafka.connect.cdc;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Ordering;
 
 class ChangeKey implements Comparable<ChangeKey> {
+  public final String databaseName;
   public final String schemaName;
   public final String tableName;
 
+
   public ChangeKey(Change change) {
-    this(change.schemaName(), change.tableName());
+    this(change.databaseName(), change.schemaName(), change.tableName());
   }
 
-  public ChangeKey(String schemaName, String tableName) {
+  public ChangeKey(String databaseName, String schemaName, String tableName) {
+    this.databaseName = databaseName;
     this.schemaName = schemaName;
     this.tableName = tableName;
   }
@@ -21,6 +25,7 @@ class ChangeKey implements Comparable<ChangeKey> {
   @Override
   public int compareTo(ChangeKey that) {
     return ComparisonChain.start()
+        .compare(this.databaseName, that.databaseName, Ordering.natural().nullsLast())
         .compare(this.schemaName, that.schemaName)
         .compare(this.tableName, that.tableName)
         .result();
@@ -29,6 +34,7 @@ class ChangeKey implements Comparable<ChangeKey> {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(ChangeKey.class)
+        .add("databaseName", this.databaseName)
         .add("schemaName", this.schemaName)
         .add("tableName", this.tableName)
         .toString();
@@ -37,6 +43,7 @@ class ChangeKey implements Comparable<ChangeKey> {
   @Override
   public int hashCode() {
     return Objects.hashCode(
+        this.databaseName,
         this.schemaName,
         this.tableName
     );

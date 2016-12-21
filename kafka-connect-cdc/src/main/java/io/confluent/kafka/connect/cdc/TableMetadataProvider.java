@@ -6,9 +6,11 @@ import java.util.Map;
 import java.util.Set;
 
 public interface TableMetadataProvider {
-  TableMetadata tableMetadata(String schemaName, String tableName);
+  TableMetadata tableMetadata(String databaseName, String schemaName, String tableName);
 
   interface TableMetadata {
+    String databaseName();
+
     String schemaName();
 
     String tableName();

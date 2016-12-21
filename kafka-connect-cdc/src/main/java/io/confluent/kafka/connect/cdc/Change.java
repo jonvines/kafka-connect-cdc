@@ -6,6 +6,17 @@ import java.util.List;
 import java.util.Map;
 
 public interface Change {
+  /**
+   * The name of the column before it was changed.
+   */
+  public static final String DATABASE_NAME = "io.confluent.kafka.connect.cdc.change.database.name";
+  public static final String SCHEMA_NAME = "io.confluent.kafka.connect.cdc.change.schema.name";
+  public static final String TABLE_NAME = "io.confluent.kafka.connect.cdc.change.table.name";
+
+  /**
+   * Metadata for the change.
+   * @return
+   */
   Map<String, String> metadata();
 
   /**
@@ -20,6 +31,7 @@ public interface Change {
 
   /**
    * Name of the database where the change originated from.
+   *
    * @return
    */
   String databaseName();
@@ -85,6 +97,11 @@ public interface Change {
   }
 
   interface ColumnValue {
+
+    /**
+     * The name of the column before it was changed.
+     */
+    public static final String COLUMN_NAME = "io.confluent.kafka.connect.cdc.change.column.name";
     /**
      * Name of the column.
      *

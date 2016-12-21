@@ -53,11 +53,12 @@ public class MsSqlSourceTask extends CDCSourceTask<MsSqlSourceConnectorConfig> i
       }
       connection.setTransactionIsolation(4096);
       connection.setAutoCommit(false);
+      String databaseName = "";
 
-      TableMetadataProvider.TableMetadata tableMetadata = this.tableMetadataProvider.tableMetadata(schemaName, tableName);
-      MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(connection, tableMetadata);
+      TableMetadataProvider.TableMetadata tableMetadata = this.tableMetadataProvider.tableMetadata(databaseName, schemaName, tableName);
+      MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(connection);
 
-      try (PreparedStatement statement = queryBuilder.changeTrackingStatement()) {
+      try (PreparedStatement statement = queryBuilder.changeTrackingStatement(tableMetadata)) {
         statement.setLong(1, 0);
 
         long count = 0;

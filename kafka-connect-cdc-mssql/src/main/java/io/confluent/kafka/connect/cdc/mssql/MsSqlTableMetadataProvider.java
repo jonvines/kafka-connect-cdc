@@ -33,10 +33,10 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
   }
 
   @Override
-  protected TableMetadata fetchTableMetadata(String schemaName, String tableName) throws SQLException {
+  protected TableMetadata fetchTableMetadata(String databaseName, String schemaName, String tableName) throws SQLException {
     try (Connection connection = openConnection()) {
       if (log.isDebugEnabled()) {
-        log.debug("Querying for primary keys for {}.{}", schemaName, tableName);
+        log.debug("Querying for primary keys for [{}].[{}].[{}]", databaseName, schemaName, tableName);
       }
 
       Set<String> keyColumns = new LinkedHashSet<>();
@@ -51,7 +51,7 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
       }
 
       if (log.isDebugEnabled()) {
-        log.debug("Querying for schema for {}.{}", schemaName, tableName);
+        log.debug("Querying for schema for [{}].[{}].[{}]", databaseName, schemaName, tableName);
       }
 
       Map<String, Schema> columnSchemas = new LinkedHashMap<>();
@@ -66,7 +66,7 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
           }
         }
       }
-      return new MsSqlTableMetadata(schemaName, tableName, keyColumns, columnSchemas);
+      return new MsSqlTableMetadata(databaseName, schemaName, tableName, keyColumns, columnSchemas);
     }
   }
 
@@ -105,16 +105,23 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
   }
 
   static class MsSqlTableMetadata implements TableMetadata {
+    final String databaseName;
     final String schemaName;
     final String tableName;
     final Set<String> keyColumns;
     final Map<String, Schema> columnSchemas;
 
-    MsSqlTableMetadata(String schemaName, String tableName, Set<String> keyColumns, Map<String, Schema> columnSchemas) {
+    MsSqlTableMetadata(String databaseName, String schemaName, String tableName, Set<String> keyColumns, Map<String, Schema> columnSchemas) {
+      this.databaseName = databaseName;
       this.schemaName = schemaName;
       this.tableName = tableName;
       this.keyColumns = keyColumns;
       this.columnSchemas = columnSchemas;
+    }
+
+    @Override
+    public String databaseName() {
+      return this.databaseName;
     }
 
     @Override

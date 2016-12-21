@@ -10,11 +10,9 @@ import java.util.Set;
 
 class MsSqlQueryBuilder {
   final Connection connection;
-  final TableMetadataProvider.TableMetadata tableMetadata;
 
-  MsSqlQueryBuilder(Connection connection, TableMetadataProvider.TableMetadata tableMetadata) {
+  MsSqlQueryBuilder(Connection connection) {
     this.connection = connection;
-    this.tableMetadata = tableMetadata;
   }
 
 
@@ -32,14 +30,14 @@ class MsSqlQueryBuilder {
     return joinCriteria.toString();
   }
 
-  String changeTrackingStatementQuery() {
+  String changeTrackingStatementQuery(TableMetadataProvider.TableMetadata tableMetadata) {
     Preconditions.checkState(
         tableMetadata.keyColumns().size() > 0,
         "Table([%s].[%s]) must have at least one primary key column.",
-        this.tableMetadata.schemaName(),
-        this.tableMetadata.tableName()
+        tableMetadata.schemaName(),
+        tableMetadata.tableName()
     );
-    String joinCriteria = joinCriteria(this.tableMetadata.keyColumns());
+    String joinCriteria = joinCriteria(tableMetadata.keyColumns());
     final String SQL = String.format("SELECT " +
             "[ct].[sys_change_version] AS [__metadata_sys_change_version], " +
             "[ct].[sys_change_creation_version] AS [__metadata_sys_change_creation_version], " +
@@ -49,17 +47,17 @@ class MsSqlQueryBuilder {
             "RIGHT OUTER JOIN " +
             "CHANGETABLE(CHANGES [%s].[%s], ?) AS [ct] " +
             "ON %s",
-        this.tableMetadata.schemaName(),
-        this.tableMetadata.tableName(),
-        this.tableMetadata.schemaName(),
-        this.tableMetadata.tableName(),
+        tableMetadata.schemaName(),
+        tableMetadata.tableName(),
+        tableMetadata.schemaName(),
+        tableMetadata.tableName(),
         joinCriteria
     );
     return SQL;
   }
 
-  public PreparedStatement changeTrackingStatement() throws SQLException {
-    final String SQL = changeTrackingStatementQuery();
+  public PreparedStatement changeTrackingStatement(TableMetadataProvider.TableMetadata tableMetadata) throws SQLException {
+    final String SQL = changeTrackingStatementQuery(tableMetadata);
     return this.connection.prepareStatement(SQL);
   }
 }

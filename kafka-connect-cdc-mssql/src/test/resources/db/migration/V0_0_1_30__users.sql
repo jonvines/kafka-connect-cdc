@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[users] (
+CREATE TABLE [cdc_testing].[dbo].[users] (
   user_id         BIGINT IDENTITY PRIMARY KEY,
   first_name      VARCHAR(256),
   last_name       VARCHAR(256),

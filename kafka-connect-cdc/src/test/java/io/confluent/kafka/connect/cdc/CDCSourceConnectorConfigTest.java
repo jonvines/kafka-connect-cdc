@@ -1,19 +1,22 @@
 package io.confluent.kafka.connect.cdc;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import io.confluent.kafka.connect.utils.config.MarkdownFormatter;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CDCSourceConnectorConfigTest {
 
   public static Map<String, String> settings() {
-    return ImmutableMap.of(
-        CDCSourceConnectorConfig.NAMESPACE_CONFIG, "com.example.cdc.${schemaName}",
-        CDCSourceConnectorConfig.KEY_NAME_FORMAT_CONFIG, "${namespace}.${tableName}Key",
-        CDCSourceConnectorConfig.VALUE_NAME_FORMAT_CONFIG, "${namespace}.${tableName}Value"
-    );
+    Map<String, String> settings = Maps.newLinkedHashMap();
+    settings.put(CDCSourceConnectorConfig.SCHEMA_CASE_FORMAT_DATABASE_NAMES_CONFIG, CDCSourceConnectorConfig.CaseFormat.LOWER.name());
+    settings.put(CDCSourceConnectorConfig.SCHEMA_CASE_FORMAT_TABLE_NAMES_CONFIG, CDCSourceConnectorConfig.CaseFormat.UPPER_CAMEL.name());
+    settings.put(CDCSourceConnectorConfig.SCHEMA_CASE_FORMAT_COLUMN_NAMES_CONFIG, CDCSourceConnectorConfig.CaseFormat.LOWER_CAMEL.name());
+
+    return settings;
   }
 
   @Test
