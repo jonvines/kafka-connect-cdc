@@ -4,7 +4,7 @@
 
     <groupId>io.confluent.kafka.connect</groupId>
     <artifactId>kafka-connect-cdc-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <prerequisites>
