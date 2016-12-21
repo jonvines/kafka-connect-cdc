@@ -15,6 +15,13 @@ class MsSqlQueryBuilder {
     this.connection = connection;
   }
 
+  final String LIST_CHANGE_TRACKING_TABLES_SQL ="SELECT DB_NAME() as [databaseName], " +
+      "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) as [schemaName], " +
+      "OBJECT_NAME(object_id) as [tableName], " +
+      "min_valid_version, " +
+      "begin_version " +
+      "FROM " +
+      "[sys].[change_tracking_tables]";
 
   String joinCriteria(Set<String> keyColumns) {
     StringBuilder joinCriteria = new StringBuilder();
@@ -54,6 +61,10 @@ class MsSqlQueryBuilder {
         joinCriteria
     );
     return SQL;
+  }
+
+  public PreparedStatement listChangeTrackingTablesStatement() throws SQLException {
+    return this.connection.prepareStatement(LIST_CHANGE_TRACKING_TABLES_SQL);
   }
 
   public PreparedStatement changeTrackingStatement(TableMetadataProvider.TableMetadata tableMetadata) throws SQLException {

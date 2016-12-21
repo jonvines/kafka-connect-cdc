@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> extends SourceTask {
+public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> extends SourceTask implements ChangeWriter {
   private static final Logger log = LoggerFactory.getLogger(CDCSourceTask.class);
   protected Conf config;
   protected Time time = new SystemTime();
@@ -34,7 +34,8 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
           String.format("Exception thrown while setting the value for field '%s'. data=%s",
               field,
               null == value ? "NULL" : value.getClass()
-          )
+          ),
+          ex
       );
     }
   }
@@ -77,7 +78,8 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
     return sourceRecord;
   }
 
-  protected void addChange(Change change) {
+  @Override
+  public void addChange(Change change) {
     if (log.isDebugEnabled()) {
       log.debug("Adding change {}", change);
     }

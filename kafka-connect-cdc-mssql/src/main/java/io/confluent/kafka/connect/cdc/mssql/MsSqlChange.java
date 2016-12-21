@@ -72,6 +72,7 @@ class MsSqlChange implements Change {
   public String toString() {
     return MoreObjects.toStringHelper(MsSqlChange.class)
         .omitNullValues()
+        .add("databaseName", this.databaseName)
         .add("schemaName", this.schemaName)
         .add("tableName", this.tableName)
         .add("changeType", this.changeType)
@@ -175,7 +176,15 @@ class MsSqlChange implements Change {
       for (Map.Entry<String, Schema> kvp : tableMetadata.columnSchemas().entrySet()) {
         String columnName = kvp.getKey();
         Schema schema = kvp.getValue();
-        Object value = resultSet.getObject(columnName);
+        Object value;
+        if (Schema.Type.INT8 == schema.type()) {
+          // Really lame Microsoft. A tiny int is stored as a single byte with a value of 0-255.
+          // Explain how this should be returned as a short?
+          value = resultSet.getByte(columnName);
+        } else {
+          value = resultSet.getObject(columnName);
+        }
+
         MsSqlColumnValue columnValue = new MsSqlColumnValue(columnName, schema, value);
         change.valueColumns.add(columnValue);
         if (tableMetadata.keyColumns().contains(columnName)) {

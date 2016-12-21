@@ -3,9 +3,12 @@ package io.confluent.kafka.connect.cdc.mssql;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.CachingTableMetadataProvider;
 import io.confluent.kafka.connect.cdc.Change;
+import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
+import org.apache.kafka.connect.data.Time;
+import org.apache.kafka.connect.data.Timestamp;
 import org.apache.kafka.connect.errors.DataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,15 +89,52 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
       case "bigint":
         builder = SchemaBuilder.int64();
         break;
+      case "char":
       case "varchar":
       case "text":
+      case "nchar":
       case "nvarchar":
       case "ntext":
         builder = SchemaBuilder.string();
         break;
+      case "smallmoney":
+      case "money":
       case "decimal":
+      case "numeric":
         builder = Decimal.builder(scale);
         break;
+      case "binary":
+      case "image":
+      case "varbinary":
+        builder = SchemaBuilder.bytes();
+        break;
+      case "date":
+        builder = Date.builder();
+        break;
+      case "datetime":
+      case "datetime2":
+      case "smalldatetime":
+        builder = Timestamp.builder();
+        break;
+      case "time":
+        builder = Time.builder();
+        break;
+      case "int":
+        builder = SchemaBuilder.int32();
+        break;
+      case "smallint":
+        builder = SchemaBuilder.int16();
+        break;
+      case "tinyint":
+        builder = SchemaBuilder.int8();
+        break;
+      case "real":
+        builder = SchemaBuilder.float32();
+        break;
+      case "float":
+        builder = SchemaBuilder.float64();
+        break;
+
       default:
         throw new DataException(
             String.format("Could not process type for table [%s].[%s].[%s] (dataType = '%s', optional = %s, scale = %d)",

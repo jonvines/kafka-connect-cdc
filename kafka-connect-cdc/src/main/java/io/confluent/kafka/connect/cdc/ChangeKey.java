@@ -5,7 +5,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 
-class ChangeKey implements Comparable<ChangeKey> {
+public class ChangeKey implements Comparable<ChangeKey> {
   public final String databaseName;
   public final String schemaName;
   public final String tableName;

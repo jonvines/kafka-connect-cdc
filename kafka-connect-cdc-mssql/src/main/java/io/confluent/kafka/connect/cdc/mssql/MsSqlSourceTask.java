@@ -1,6 +1,7 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
 import io.confluent.kafka.connect.cdc.CDCSourceTask;
+import io.confluent.kafka.connect.cdc.ChangeWriter;
 import io.confluent.kafka.connect.cdc.JdbcUtils;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import org.apache.kafka.common.utils.SystemTime;
@@ -39,21 +40,20 @@ public class MsSqlSourceTask extends CDCSourceTask<MsSqlSourceConnectorConfig> i
   public void run() {
     while (true) {
       try {
-        query("dbo", "users");
+//        queryTable("dbo", "users");
       } catch (Exception ex) {
 
       }
     }
   }
 
-  void query(String schemaName, String tableName) throws SQLException {
+  void queryTable(ChangeWriter changeWriter, String databaseName, String schemaName, String tableName) throws SQLException {
     try (Connection connection = JdbcUtils.openConnection(this.config)) {
       if (log.isDebugEnabled()) {
         log.debug("Setting transaction level to 4096 (READ_COMMITTED_SNAPSHOT)");
       }
       connection.setTransactionIsolation(4096);
       connection.setAutoCommit(false);
-      String databaseName = "";
 
       TableMetadataProvider.TableMetadata tableMetadata = this.tableMetadataProvider.tableMetadata(databaseName, schemaName, tableName);
       MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(connection);
@@ -68,7 +68,7 @@ public class MsSqlSourceTask extends CDCSourceTask<MsSqlSourceConnectorConfig> i
 
           while (resultSet.next()) {
             if (null != change) {
-              addChange(change);
+              changeWriter.addChange(change);
             }
 
             MsSqlChange.Builder builder = MsSqlChange.builder();
@@ -77,7 +77,7 @@ public class MsSqlSourceTask extends CDCSourceTask<MsSqlSourceConnectorConfig> i
           }
 
           if (null != change) {
-            addChange(change);
+            changeWriter.addChange(change);
           }
         }
 
