@@ -5,12 +5,16 @@ import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.ChangeKey;
 import io.confluent.kafka.connect.cdc.ChangeWriter;
 import io.confluent.kafka.connect.cdc.JdbcUtils;
+import io.confluent.kafka.connect.cdc.JsonChange;
+import io.confluent.kafka.connect.cdc.JsonChangeList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -67,7 +71,7 @@ public class MsSqlSourceTaskTest extends DockerTest {
     return changeCaptureTables.stream().map(data -> dynamicTest(data.tableName, () -> queryTable(data)));
   }
 
-  private void queryTable(ChangeKey input) throws SQLException {
+  private void queryTable(ChangeKey input) throws SQLException, IOException {
     final List<Change> changes = new ArrayList<>(1000);
     ChangeWriter changeWriter = mock(ChangeWriter.class);
 

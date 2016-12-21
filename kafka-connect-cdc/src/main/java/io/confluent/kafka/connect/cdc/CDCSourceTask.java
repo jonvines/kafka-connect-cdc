@@ -57,8 +57,9 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
 
     Map<String, String> metadata = new LinkedHashMap<>(change.metadata().size() + 3);
     metadata.putAll(change.metadata());
-    metadata.put("schemaName", change.schemaName());
-    metadata.put("tableName", change.tableName());
+    metadata.put(Constants.DATABASE_NAME_VARIABLE, change.databaseName());
+    metadata.put(Constants.SCHEMA_NAME_VARIABLE, change.schemaName());
+    metadata.put(Constants.TABLE_NAME_VARIABLE, change.tableName());
     setStructField(structPair.getValue(), Constants.METADATA_FIELD, change.metadata());
 
     //TODO: Correct topic pattern

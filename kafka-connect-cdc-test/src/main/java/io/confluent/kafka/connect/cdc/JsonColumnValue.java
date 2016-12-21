@@ -78,4 +78,12 @@ public class JsonColumnValue implements Change.ColumnValue {
 
     return true;
   }
+
+  public static JsonColumnValue convert(Change.ColumnValue columnValue) {
+    JsonColumnValue jsonColumnValue = new JsonColumnValue();
+    jsonColumnValue.columnName = columnValue.columnName();
+    jsonColumnValue.schema = columnValue.schema();
+    jsonColumnValue.value = columnValue.value();
+    return jsonColumnValue;
+  }
 }
