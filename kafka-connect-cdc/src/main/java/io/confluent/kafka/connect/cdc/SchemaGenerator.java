@@ -246,6 +246,12 @@ class SchemaGenerator {
   }
 
   public SchemaPair get(final Change change) {
+    Preconditions.checkNotNull(change, "change cannot be null.");
+    Preconditions.checkNotNull(change.databaseName(), "change.databaseName() cannot be null.");
+    Preconditions.checkNotNull(change.schemaName(), "change.schemaName() cannot be null.");
+    Preconditions.checkNotNull(change.tableName(), "change.tableName() cannot be null.");
+    Preconditions.checkNotNull(change.metadata(), "change.metadata() cannot be null.");
+
     ChangeKey changeKey = new ChangeKey(change);
     try {
       return this.schemaPairCache.get(changeKey, new Callable<SchemaPair>() {
