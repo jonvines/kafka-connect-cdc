@@ -1,5 +1,6 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
+import com.google.common.base.Joiner;
 import com.palantir.docker.compose.DockerComposeRule;
 import com.palantir.docker.compose.connection.Container;
 import com.palantir.docker.compose.connection.DockerPort;
@@ -10,6 +11,8 @@ import org.flywaydb.core.Flyway;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -17,7 +20,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DockerTest {
-
+  private static final Logger log = LoggerFactory.getLogger(DockerTest.class);
   public static final String USERNAME = "sa";
   public static final String PASSWORD = "1wRr8jZIxYlBVO";
   public static final int PORT = 1433;
@@ -67,6 +70,9 @@ public class DockerTest {
     Flyway flyway = new Flyway();
     flyway.setDataSource(jdbcUrl("cdc_testing"), USERNAME, PASSWORD);
     flyway.setSchemas("dbo");
+    if(log.isInfoEnabled()) {
+      log.info("flyway locations. {}", Joiner.on(", ").join(flyway.getLocations()));
+    }
     flyway.migrate();
   }
 
