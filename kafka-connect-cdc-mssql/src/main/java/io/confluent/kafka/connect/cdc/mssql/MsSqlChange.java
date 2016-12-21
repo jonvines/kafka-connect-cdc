@@ -139,6 +139,7 @@ class MsSqlChange implements Change {
     public MsSqlChange build(TableMetadataProvider.TableMetadata tableMetadata, ResultSet resultSet, Time time) throws SQLException {
       MsSqlChange change = new MsSqlChange();
       change.timestamp = time.milliseconds();
+      change.databaseName = tableMetadata.databaseName();
       change.schemaName = tableMetadata.schemaName();
       change.tableName = tableMetadata.tableName();
 

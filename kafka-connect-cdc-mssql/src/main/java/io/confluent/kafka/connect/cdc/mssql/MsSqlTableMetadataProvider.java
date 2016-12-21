@@ -1,6 +1,8 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
+import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.CachingTableMetadataProvider;
+import io.confluent.kafka.connect.cdc.Change;
 import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
@@ -61,7 +63,7 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
         try (ResultSet resultSet = columnDefinitionStatement.executeQuery()) {
           while (resultSet.next()) {
             String columnName = resultSet.getString(1);
-            Schema schema = generateSchema(resultSet, schemaName, tableName);
+            Schema schema = generateSchema(resultSet, databaseName, schemaName, tableName, columnName);
             columnSchemas.put(columnName, schema);
           }
         }
@@ -70,7 +72,11 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
     }
   }
 
-  Schema generateSchema(ResultSet resultSet, final String schemaName, final String tableName) throws SQLException {
+  Schema generateSchema(ResultSet resultSet,
+                        final String databaseName,
+                        final String schemaName,
+                        final String tableName,
+                        final String columnName) throws SQLException {
     boolean optional = resultSet.getBoolean(2);
     String dataType = resultSet.getString(3);
     int scale = resultSet.getInt(4);
@@ -91,11 +97,15 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
         break;
       default:
         throw new DataException(
-            String.format("Could not process type for table %s.%s (dataType = '%s', optional = %s, scale = %d)",
-                schemaName, tableName, dataType, optional, scale
+            String.format("Could not process type for table [%s].[%s].[%s] (dataType = '%s', optional = %s, scale = %d)",
+                databaseName, schemaName, tableName, dataType, optional, scale
             )
         );
     }
+
+    builder.parameters(
+        ImmutableMap.of(Change.ColumnValue.COLUMN_NAME, columnName)
+    );
 
     if (optional) {
       builder.optional();
