@@ -4,8 +4,15 @@
     "sys_change_creation_version" : "4",
     "sys_change_version" : "4"
   },
-  "sourcePartition" : null,
-  "sourceOffset" : null,
+  "sourcePartition" : {
+    "databaseName" : "cdc_testing",
+    "schemaName" : "dbo",
+    "tableName" : "bigint_table"
+  },
+  "sourceOffset" : {
+    "sys_change_version" : 4,
+    "complete" : true
+  },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
   "tableName" : "bigint_table",

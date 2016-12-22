@@ -4,8 +4,15 @@
     "sys_change_creation_version" : "7",
     "sys_change_version" : "7"
   },
-  "sourcePartition" : null,
-  "sourceOffset" : null,
+  "sourcePartition" : {
+    "databaseName" : "cdc_testing",
+    "schemaName" : "dbo",
+    "tableName" : "date_table"
+  },
+  "sourceOffset" : {
+    "sys_change_version" : 7,
+    "complete" : true
+  },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
   "tableName" : "date_table",
@@ -34,7 +41,7 @@
     }
   }, {
     "columnName" : "value",
-    "value" : 15156,
+    "value" : 1309478400000,
     "schema" : {
       "name" : "org.apache.kafka.connect.data.Date",
       "type" : "INT32",
