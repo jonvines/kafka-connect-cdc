@@ -20,22 +20,20 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DockerTest {
-  private static final Logger log = LoggerFactory.getLogger(DockerTest.class);
   public static final String USERNAME = "sa";
   public static final String PASSWORD = "1wRr8jZIxYlBVO";
   public static final int PORT = 1433;
   public static final String JDBCURL_FORMAT = "jdbc:sqlserver://$HOST:$EXTERNAL_PORT;databaseName=%s";
   public static final String CONTAINER_NAME = "mssql";
   public static final String DATABASE_NAME = "cdc_testing";
-
-//  "jdbc:postgresql://$HOST:$EXTERNAL_PORT/CDC_TESTING"
-
-
   @ClassRule
   public final static DockerComposeRule docker = DockerUtils.loadRule(
       "src/test/resources/docker-compose.yml", "target/mssql",
       CONTAINER_NAME, new JdbcHealthCheck(USERNAME, PASSWORD, PORT, String.format(JDBCURL_FORMAT, "master"))
   );
+
+//  "jdbc:postgresql://$HOST:$EXTERNAL_PORT/CDC_TESTING"
+  private static final Logger log = LoggerFactory.getLogger(DockerTest.class);
 
   public static Container mssqlContainer() {
     return docker.containers().container(CONTAINER_NAME);
@@ -70,7 +68,7 @@ public class DockerTest {
     Flyway flyway = new Flyway();
     flyway.setDataSource(jdbcUrl("cdc_testing"), USERNAME, PASSWORD);
     flyway.setSchemas("dbo");
-    if(log.isInfoEnabled()) {
+    if (log.isInfoEnabled()) {
       log.info("flyway locations. {}", Joiner.on(", ").join(flyway.getLocations()));
     }
     flyway.migrate();

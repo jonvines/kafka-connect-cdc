@@ -17,6 +17,21 @@ import java.util.Map;
 import java.util.TimeZone;
 
 class MsSqlChange implements Change {
+  Map<String, String> metadata;
+  Map<String, Object> sourcePartition;
+  Map<String, Object> sourceOffset;
+  String databaseName;
+  String schemaName;
+  String tableName;
+  long timestamp;
+  ChangeType changeType;
+  List<ColumnValue> keyColumns;
+  List<ColumnValue> valueColumns;
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
   @Override
   public Map<String, String> metadata() {
     return this.metadata;
@@ -67,10 +82,6 @@ class MsSqlChange implements Change {
     return this.timestamp;
   }
 
-  public static Builder builder() {
-    return new Builder();
-  }
-
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(MsSqlChange.class)
@@ -87,17 +98,6 @@ class MsSqlChange implements Change {
         .add("valueColumns", this.valueColumns)
         .toString();
   }
-
-  Map<String, String> metadata;
-  Map<String, Object> sourcePartition;
-  Map<String, Object> sourceOffset;
-  String databaseName;
-  String schemaName;
-  String tableName;
-  long timestamp;
-  ChangeType changeType;
-  List<ColumnValue> keyColumns;
-  List<ColumnValue> valueColumns;
 
   static class MsSqlColumnValue implements ColumnValue {
 

@@ -17,8 +17,8 @@ import java.util.Map;
 
 public class MsSqlSourceTask extends CDCSourceTask<MsSqlSourceConnectorConfig> implements Runnable {
   private static final Logger log = LoggerFactory.getLogger(MsSqlSourceTask.class);
-  private TableMetadataProvider tableMetadataProvider;
   Time time = new SystemTime();
+  private TableMetadataProvider tableMetadataProvider;
 
   @Override
   protected MsSqlSourceConnectorConfig getConfig(Map<String, String> map) {

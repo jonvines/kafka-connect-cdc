@@ -58,6 +58,28 @@ public class JsonChange implements Change {
     return ObjectMapperFactory.instance.readValue(inputStream, JsonChange.class);
   }
 
+  public static JsonChange convert(Change change) {
+    JsonChange jsonChange = new JsonChange();
+    jsonChange.sourceOffset = change.sourceOffset();
+    jsonChange.sourcePartition = change.sourcePartition();
+    jsonChange.metadata = change.metadata();
+    jsonChange.changeType = change.changeType();
+    jsonChange.databaseName = change.databaseName();
+    jsonChange.schemaName = change.schemaName();
+    jsonChange.tableName = change.tableName();
+    jsonChange.timestamp = change.timestamp();
+
+    for (Change.ColumnValue columnValue : change.valueColumns()) {
+      JsonColumnValue jsonColumnValue = JsonColumnValue.convert(columnValue);
+      jsonChange.valueColumns().add(jsonColumnValue);
+    }
+    for (Change.ColumnValue columnValue : change.keyColumns()) {
+      JsonColumnValue jsonColumnValue = JsonColumnValue.convert(columnValue);
+      jsonChange.keyColumns().add(jsonColumnValue);
+    }
+    return jsonChange;
+  }
+
   @Override
   public Map<String, String> metadata() {
     return this.metadata;
@@ -194,27 +216,5 @@ public class JsonChange implements Change {
 
   public void timestamp(long value) {
     this.timestamp = value;
-  }
-
-  public static JsonChange convert(Change change) {
-    JsonChange jsonChange = new JsonChange();
-    jsonChange.sourceOffset = change.sourceOffset();
-    jsonChange.sourcePartition = change.sourcePartition();
-    jsonChange.metadata = change.metadata();
-    jsonChange.changeType = change.changeType();
-    jsonChange.databaseName = change.databaseName();
-    jsonChange.schemaName = change.schemaName();
-    jsonChange.tableName = change.tableName();
-    jsonChange.timestamp = change.timestamp();
-
-    for (Change.ColumnValue columnValue : change.valueColumns()) {
-      JsonColumnValue jsonColumnValue = JsonColumnValue.convert(columnValue);
-      jsonChange.valueColumns().add(jsonColumnValue);
-    }
-    for (Change.ColumnValue columnValue : change.keyColumns()) {
-      JsonColumnValue jsonColumnValue = JsonColumnValue.convert(columnValue);
-      jsonChange.keyColumns().add(jsonColumnValue);
-    }
-    return jsonChange;
   }
 }

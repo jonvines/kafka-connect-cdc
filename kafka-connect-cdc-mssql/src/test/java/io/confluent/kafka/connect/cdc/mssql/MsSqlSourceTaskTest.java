@@ -6,7 +6,6 @@ import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.ChangeKey;
 import io.confluent.kafka.connect.cdc.ChangeWriter;
 import io.confluent.kafka.connect.cdc.JdbcUtils;
-import io.confluent.kafka.connect.cdc.JsonChange;
 import io.confluent.kafka.connect.cdc.JsonChangeList;
 import org.apache.kafka.common.utils.Time;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;

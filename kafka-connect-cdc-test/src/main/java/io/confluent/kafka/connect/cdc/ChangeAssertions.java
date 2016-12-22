@@ -79,10 +79,10 @@ public class ChangeAssertions {
 
       assertSchema(expectedColumnValue.schema(), actualColumnValue.schema(), String.format("actual.%s().get(%d).%s() does not match.", method, i, "schema"));
 
-      if(expectedColumnValue.value() instanceof byte[]) {
-        byte[] expectedByteArray = (byte[])expectedColumnValue.value();
+      if (expectedColumnValue.value() instanceof byte[]) {
+        byte[] expectedByteArray = (byte[]) expectedColumnValue.value();
         assertTrue(actualColumnValue.value() instanceof byte[], String.format("actual.%s().get(%d).%s() should be a byte array.", method, i, "value"));
-        byte[] actualByteArray = (byte[])actualColumnValue.value();
+        byte[] actualByteArray = (byte[]) actualColumnValue.value();
         assertArrayEquals(expectedByteArray, actualByteArray, String.format("actual.%s().get(%d).%s() does not match", method, i, "value"));
       } else {
         assertEquals(expectedColumnValue.value(), actualColumnValue.value(), String.format("actual.%s().get(%d).%s() does not match", method, i, "value"));

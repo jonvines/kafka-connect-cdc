@@ -10,18 +10,17 @@ import java.util.Set;
 
 class MsSqlQueryBuilder {
   final Connection connection;
-
-  MsSqlQueryBuilder(Connection connection) {
-    this.connection = connection;
-  }
-
-  final String LIST_CHANGE_TRACKING_TABLES_SQL ="SELECT DB_NAME() as [databaseName], " +
-      "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) as [schemaName], " +
-      "OBJECT_NAME(object_id) as [tableName], " +
+  final String LIST_CHANGE_TRACKING_TABLES_SQL = "SELECT DB_NAME() AS [databaseName], " +
+      "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) AS [schemaName], " +
+      "OBJECT_NAME(object_id) AS [tableName], " +
       "min_valid_version, " +
       "begin_version " +
       "FROM " +
       "[sys].[change_tracking_tables]";
+
+  MsSqlQueryBuilder(Connection connection) {
+    this.connection = connection;
+  }
 
   String joinCriteria(Set<String> keyColumns) {
     StringBuilder joinCriteria = new StringBuilder();

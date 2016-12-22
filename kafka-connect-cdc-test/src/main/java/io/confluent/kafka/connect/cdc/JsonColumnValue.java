@@ -33,21 +33,6 @@ public class JsonColumnValue implements Change.ColumnValue {
     this.value = value;
   }
 
-  public void schema(Schema schema) {
-    Preconditions.checkNotNull(schema, "schema cannot be null");
-    this.schema = schema;
-  }
-
-  @Override
-  public String columnName() {
-    return this.columnName;
-  }
-
-  @Override
-  public Schema schema() {
-    return this.schema;
-  }
-
   static Object int8(Object o) {
     if (o instanceof Long) {
       Long integer = (Long) o;
@@ -117,7 +102,7 @@ public class JsonColumnValue implements Change.ColumnValue {
   }
 
   static Object decimal(Schema schema, Object value) {
-    if(value instanceof byte[]) {
+    if (value instanceof byte[]) {
       byte[] bytes = (byte[]) value;
       return Decimal.toLogical(schema, bytes);
     }
@@ -125,7 +110,7 @@ public class JsonColumnValue implements Change.ColumnValue {
   }
 
   static Object date(Schema schema, Object value) {
-    if(value instanceof Integer) {
+    if (value instanceof Integer) {
       Integer intValue = (Integer) value;
       return Date.toLogical(schema, intValue.intValue());
     }
@@ -133,7 +118,7 @@ public class JsonColumnValue implements Change.ColumnValue {
   }
 
   static Object time(Schema schema, Object value) {
-    if(value instanceof Integer) {
+    if (value instanceof Integer) {
       Integer intValue = (Integer) value;
       return Time.toLogical(schema, intValue.intValue());
     }
@@ -141,15 +126,38 @@ public class JsonColumnValue implements Change.ColumnValue {
   }
 
   static Object timestamp(Schema schema, Object value) {
-    if(value instanceof Long) {
+    if (value instanceof Long) {
       Long longValue = (Long) value;
       return Timestamp.toLogical(schema, longValue.longValue());
     }
-    if(value instanceof Integer) {
+    if (value instanceof Integer) {
       Integer integerValue = (Integer) value;
       return Timestamp.toLogical(schema, integerValue.longValue());
     }
     return value;
+  }
+
+  public static JsonColumnValue convert(Change.ColumnValue columnValue) {
+    JsonColumnValue jsonColumnValue = new JsonColumnValue();
+    jsonColumnValue.columnName = columnValue.columnName();
+    jsonColumnValue.schema = columnValue.schema();
+    jsonColumnValue.value(columnValue.value());
+    return jsonColumnValue;
+  }
+
+  public void schema(Schema schema) {
+    Preconditions.checkNotNull(schema, "schema cannot be null");
+    this.schema = schema;
+  }
+
+  @Override
+  public String columnName() {
+    return this.columnName;
+  }
+
+  @Override
+  public Schema schema() {
+    return this.schema;
   }
 
   @Override
@@ -169,12 +177,11 @@ public class JsonColumnValue implements Change.ColumnValue {
         }
         break;
       case INT32:
-        if(Date.LOGICAL_NAME.equals(this.schema.name())){
+        if (Date.LOGICAL_NAME.equals(this.schema.name())) {
           result = date(this.schema, this.value);
-        } else if(Time.LOGICAL_NAME.equals(this.schema.name())){
+        } else if (Time.LOGICAL_NAME.equals(this.schema.name())) {
           result = time(this.schema, this.value);
-        }
-        else {
+        } else {
           result = int32(this.value);
         }
         break;
@@ -182,7 +189,7 @@ public class JsonColumnValue implements Change.ColumnValue {
         result = int16(this.value);
         break;
       case INT64:
-        if(Timestamp.LOGICAL_NAME.equals(this.schema.name())){
+        if (Timestamp.LOGICAL_NAME.equals(this.schema.name())) {
           result = timestamp(this.schema, this.value);
         } else {
           result = int64(this.value);
@@ -205,10 +212,8 @@ public class JsonColumnValue implements Change.ColumnValue {
     return result;
   }
 
-
-
   public void value(Object value) {
-    if(value instanceof java.sql.Date) {
+    if (value instanceof java.sql.Date) {
       java.sql.Date d = (java.sql.Date) value;
       this.value = new java.util.Date(d.getTime());
     }
@@ -247,13 +252,5 @@ public class JsonColumnValue implements Change.ColumnValue {
     }
 
     return true;
-  }
-
-  public static JsonColumnValue convert(Change.ColumnValue columnValue) {
-    JsonColumnValue jsonColumnValue = new JsonColumnValue();
-    jsonColumnValue.columnName = columnValue.columnName();
-    jsonColumnValue.schema = columnValue.schema();
-    jsonColumnValue.value(columnValue.value());
-    return jsonColumnValue;
   }
 }

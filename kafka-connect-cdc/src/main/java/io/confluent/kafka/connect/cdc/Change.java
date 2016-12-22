@@ -15,6 +15,7 @@ public interface Change {
 
   /**
    * Metadata for the change.
+   *
    * @return
    */
   Map<String, String> metadata();
@@ -102,6 +103,7 @@ public interface Change {
      * The name of the column before it was changed.
      */
     public static final String COLUMN_NAME = "io.confluent.kafka.connect.cdc.change.column.name";
+
     /**
      * Name of the column.
      *

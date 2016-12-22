@@ -9,6 +9,8 @@ import java.util.Date;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JsonTime implements Time {
+  long milliseconds;
+
   public JsonTime() {
 
   }
@@ -20,8 +22,6 @@ public class JsonTime implements Time {
   public JsonTime(Date date) {
     this.milliseconds = date.getTime();
   }
-
-  long milliseconds;
 
   @Override
   public long milliseconds() {

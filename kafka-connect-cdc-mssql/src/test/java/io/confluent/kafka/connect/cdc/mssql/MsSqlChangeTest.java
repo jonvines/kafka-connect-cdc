@@ -25,9 +25,9 @@ public class MsSqlChangeTest {
 
     Fairy fairy = Fairy.create();
     Person person = fairy.person();
-    
-    long EXPECTED_USERID=12345L;
-    String EXPECTED_IP=fairy.networkProducer().ipAddress();
+
+    long EXPECTED_USERID = 12345L;
+    String EXPECTED_IP = fairy.networkProducer().ipAddress();
 
     Time time = mock(Time.class);
     when(time.milliseconds()).thenReturn(1482263155123L);

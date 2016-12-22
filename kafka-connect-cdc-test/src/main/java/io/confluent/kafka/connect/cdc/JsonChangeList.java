@@ -26,7 +26,7 @@ public class JsonChangeList extends ArrayList<JsonChange> {
 
   public static JsonChangeList of(Collection<Change> changes) {
     JsonChangeList jsonChanges = new JsonChangeList();
-    for(Change c:changes){
+    for (Change c : changes) {
       JsonChange jsonChange = JsonChange.convert(c);
       jsonChanges.add(jsonChange);
     }

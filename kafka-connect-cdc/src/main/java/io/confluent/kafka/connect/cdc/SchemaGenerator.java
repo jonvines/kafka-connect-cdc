@@ -62,33 +62,15 @@ class SchemaGenerator {
     this.valueTemplate = loadTemplate(CDCSourceConnectorConfig.VALUE_NAME_FORMAT_CONFIG, this.config.valueNameFormat);
   }
 
-  final Template loadTemplate(String templateName, String template) {
-    if (log.isDebugEnabled()) {
-      log.debug("Adding templateName '{}' template '{}'", templateName, template);
-    }
-    this.loader.putTemplate(templateName, template);
-    try {
-      if (log.isInfoEnabled()) {
-        log.info("Loading template '{}'", templateName);
-      }
-      return this.configuration.getTemplate(templateName);
-    } catch (IOException ex) {
-      throw new DataException(
-          String.format("Exception thrown while loading template '%s'", templateName),
-          ex
-      );
-    }
-  }
-
   static String convertCase(String text, CDCSourceConnectorConfig.CaseFormat inputCaseFormat, CDCSourceConnectorConfig.CaseFormat outputCaseFormat) {
-    if(Strings.isNullOrEmpty(text)) {
+    if (Strings.isNullOrEmpty(text)) {
       return "";
     }
-    if(CDCSourceConnectorConfig.CaseFormat.LOWER == outputCaseFormat) {
+    if (CDCSourceConnectorConfig.CaseFormat.LOWER == outputCaseFormat) {
       return text.toLowerCase();
-    } else if(CDCSourceConnectorConfig.CaseFormat.UPPER == outputCaseFormat) {
+    } else if (CDCSourceConnectorConfig.CaseFormat.UPPER == outputCaseFormat) {
       return text.toUpperCase();
-    } else if(CDCSourceConnectorConfig.CaseFormat.NONE == outputCaseFormat) {
+    } else if (CDCSourceConnectorConfig.CaseFormat.NONE == outputCaseFormat) {
       return text;
     }
 
@@ -122,6 +104,24 @@ class SchemaGenerator {
         );
     }
     return inputFormat;
+  }
+
+  final Template loadTemplate(String templateName, String template) {
+    if (log.isDebugEnabled()) {
+      log.debug("Adding templateName '{}' template '{}'", templateName, template);
+    }
+    this.loader.putTemplate(templateName, template);
+    try {
+      if (log.isInfoEnabled()) {
+        log.info("Loading template '{}'", templateName);
+      }
+      return this.configuration.getTemplate(templateName);
+    } catch (IOException ex) {
+      throw new DataException(
+          String.format("Exception thrown while loading template '%s'", templateName),
+          ex
+      );
+    }
   }
 
   Map<String, String> values(Change change, String namespace) {
