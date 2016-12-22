@@ -62,12 +62,14 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
     metadata.put(Constants.TABLE_NAME_VARIABLE, change.tableName());
     setStructField(structPair.getValue(), Constants.METADATA_FIELD, change.metadata());
 
-    //TODO: Correct topic pattern
+    String topic = this.schemaGenerator.topic(change);
+
+    //TODO: Correct topicFormat pattern
 
     SourceRecord sourceRecord = new SourceRecord(
         change.sourcePartition(),
         change.sourceOffset(),
-        "topic",
+        topic,
         null,
         schemaPair.getKey().schema,
         structPair.getKey(),
@@ -90,7 +92,7 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
       }
       return;
     }
-    SchemaPair schemaPair = this.schemaGenerator.get(change);
+    SchemaPair schemaPair = this.schemaGenerator.schemas(change);
     SourceRecord record = createRecord(schemaPair, change);
     this.changes.add(record);
   }

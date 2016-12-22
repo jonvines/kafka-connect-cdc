@@ -34,6 +34,9 @@ public class MsSqlSourceConnector extends CDCSourceConnector {
 
     List<Map<String, String>> taskConfigs = new ArrayList<>(taskCount);
     for (Iterable<String> tables : Iterables.partition(this.config.changeTrackingTables, taskCount)) {
+      if(Iterables.size(tables) == 0) {
+        continue;
+      }
       Map<String, String> taskSettings = new LinkedHashMap<>();
       taskSettings.putAll(this.settings);
       taskSettings.put(MsSqlSourceConnectorConfig.CHANGE_TRACKING_TABLES_CONFIG, Joiner.on(',').join(tables));

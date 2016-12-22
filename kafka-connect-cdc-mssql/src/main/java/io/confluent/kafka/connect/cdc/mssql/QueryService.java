@@ -3,6 +3,7 @@ package io.confluent.kafka.connect.cdc.mssql;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.RateLimiter;
 import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.ChangeKey;
 import io.confluent.kafka.connect.cdc.ChangeWriter;
@@ -59,11 +60,15 @@ class QueryService extends AbstractExecutionThreadService {
     }
   }
 
+  RateLimiter rateLimiter = RateLimiter.create(1);
+
   void processTables() throws SQLException {
     for (String changeTrackingTable : Iterables.cycle(this.config.changeTrackingTables)) {
       if (!isRunning()) {
         break;
       }
+
+      rateLimiter.acquire();
 
       ChangeKey changeKey;
 
@@ -94,15 +99,15 @@ class QueryService extends AbstractExecutionThreadService {
       connection.setTransactionIsolation(4096);
       connection.setAutoCommit(false);
 
-      TableMetadataProvider.TableMetadata tableMetadata = this.tableMetadataProvider.tableMetadata(changeKey.databaseName, changeKey.schemaName, changeKey.tableName);
+      TableMetadataProvider.TableMetadata tableMetadata = this.tableMetadataProvider.tableMetadata(changeKey);
       MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(connection);
 
-      Map<String, Object> sourcePartition = Change.sourcePartition(changeKey.databaseName, changeKey.schemaName, changeKey.tableName);
-      Map<String, Object> startOffset = this.tableMetadataProvider.startOffset(changeKey.databaseName, changeKey.schemaName, changeKey.tableName);
+      Map<String, Object> sourcePartition = Change.sourcePartition(changeKey);
+      Map<String, Object> startOffset = this.tableMetadataProvider.startOffset(changeKey);
       long offset = MsSqlChange.offset(startOffset);
 
       if (log.isDebugEnabled()) {
-        log.debug("Starting [{}].[{}].[{}] at offset {}", changeKey.databaseName, changeKey.schemaName, changeKey.tableName, offset);
+        log.debug("Starting at offset {} for ", offset, changeKey);
       }
 
       try (PreparedStatement statement = queryBuilder.changeTrackingStatement(tableMetadata)) {
@@ -111,24 +116,22 @@ class QueryService extends AbstractExecutionThreadService {
         long count = 0;
 
         try (ResultSet resultSet = statement.executeQuery()) {
-          MsSqlChange change = null;
 
-          long changeVersion = 10;
+          long changeVersion = 0;
           while (resultSet.next()) {
-            if (null != change) {
-              changeWriter.addChange(change);
+            changeVersion = resultSet.getLong("__metadata_sys_change_version");
+
+            if(log.isDebugEnabled()) {
+              log.debug("__metadata_sys_change_version = {} for {}", changeVersion, changeKey);
             }
 
-            changeVersion = resultSet.getLong("__metadata_sys_change_version");
             MsSqlChange.Builder builder = MsSqlChange.builder();
-            change = builder.build(tableMetadata, resultSet, this.time);
+            MsSqlChange change = builder.build(tableMetadata, resultSet, this.time);
             change.sourcePartition = sourcePartition;
-            change.sourceOffset = MsSqlChange.offset(changeVersion, false);
-            count++;
-          }
-          if (null != change) {
-            change.sourceOffset = MsSqlChange.offset(changeVersion, true);
+            change.sourceOffset = MsSqlChange.offset(changeVersion);
             changeWriter.addChange(change);
+            this.tableMetadataProvider.cacheOffset(changeKey, change.sourceOffset);
+            count++;
           }
         }
 
@@ -137,7 +140,10 @@ class QueryService extends AbstractExecutionThreadService {
         }
 
       } finally {
-        connection.rollback();
+        if(log.isDebugEnabled()) {
+          log.debug("calling connection.commit()");
+        }
+        connection.commit();
       }
     }
   }

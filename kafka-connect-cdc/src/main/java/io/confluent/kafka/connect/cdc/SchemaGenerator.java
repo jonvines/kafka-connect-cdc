@@ -39,6 +39,7 @@ class SchemaGenerator {
   final Template namespaceTemplate;
   final Template keyTemplate;
   final Template valueTemplate;
+  final Template topicNameTemplate;
 
 
   public SchemaGenerator(CDCSourceConnectorConfig config) {
@@ -60,6 +61,7 @@ class SchemaGenerator {
     this.namespaceTemplate = loadTemplate(CDCSourceConnectorConfig.NAMESPACE_CONFIG, this.config.namespace);
     this.keyTemplate = loadTemplate(CDCSourceConnectorConfig.KEY_NAME_FORMAT_CONFIG, this.config.keyNameFormat);
     this.valueTemplate = loadTemplate(CDCSourceConnectorConfig.VALUE_NAME_FORMAT_CONFIG, this.config.valueNameFormat);
+    this.topicNameTemplate = loadTemplate(CDCSourceConnectorConfig.TOPIC_FORMAT_CONFIG, this.config.topicFormat);
   }
 
   static String convertCase(String text, CDCSourceConnectorConfig.CaseFormat inputCaseFormat, CDCSourceConnectorConfig.CaseFormat outputCaseFormat) {
@@ -248,7 +250,11 @@ class SchemaGenerator {
     );
   }
 
-  public SchemaPair get(final Change change) {
+  String generateTopicName(Change change) {
+    return renderTemplate(change, this.topicNameTemplate, null);
+  }
+
+  public SchemaPair schemas(final Change change) {
     Preconditions.checkNotNull(change, "change cannot be null.");
     Preconditions.checkNotNull(change.databaseName(), "change.databaseName() cannot be null.");
     Preconditions.checkNotNull(change.schemaName(), "change.schemaName() cannot be null.");
@@ -267,5 +273,27 @@ class SchemaGenerator {
       throw new DataException("Exception thrown while building schemas.", e);
     }
   }
+
+  public String topic(final Change change) {
+    Preconditions.checkNotNull(change, "change cannot be null.");
+    Preconditions.checkNotNull(change.databaseName(), "change.databaseName() cannot be null.");
+    Preconditions.checkNotNull(change.schemaName(), "change.schemaName() cannot be null.");
+    Preconditions.checkNotNull(change.tableName(), "change.tableName() cannot be null.");
+    Preconditions.checkNotNull(change.metadata(), "change.metadata() cannot be null.");
+
+    ChangeKey changeKey = new ChangeKey(change);
+    try {
+      return this.topicNameCache.get(changeKey, new Callable<String>() {
+        @Override
+        public String call() throws Exception {
+          return generateTopicName(change);
+        }
+      });
+    } catch (ExecutionException e) {
+      throw new DataException("Exception thrown while building schemas.", e);
+    }
+  }
+
+
 
 }

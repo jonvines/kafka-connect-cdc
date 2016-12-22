@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.CachingTableMetadataProvider;
 import io.confluent.kafka.connect.cdc.Change;
+import io.confluent.kafka.connect.cdc.ChangeKey;
 import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Schema;
@@ -19,6 +20,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -40,16 +42,16 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
   }
 
   @Override
-  protected TableMetadata fetchTableMetadata(String databaseName, String schemaName, String tableName) throws SQLException {
+  protected TableMetadata fetchTableMetadata(ChangeKey changeKey) throws SQLException {
     try (Connection connection = openConnection()) {
       if (log.isDebugEnabled()) {
-        log.debug("Querying for primary keys for [{}].[{}].[{}]", databaseName, schemaName, tableName);
+        log.debug("Querying for primary keys for {}", changeKey);
       }
 
       Set<String> keyColumns = new LinkedHashSet<>();
       try (PreparedStatement primaryKeyStatement = connection.prepareStatement(PRIMARY_KEY_SQL)) {
-        primaryKeyStatement.setString(1, schemaName);
-        primaryKeyStatement.setString(2, tableName);
+        primaryKeyStatement.setString(1, changeKey.schemaName);
+        primaryKeyStatement.setString(2, changeKey.tableName);
         try (ResultSet resultSet = primaryKeyStatement.executeQuery()) {
           while (resultSet.next()) {
             keyColumns.add(resultSet.getString(1));
@@ -58,29 +60,27 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
       }
 
       if (log.isDebugEnabled()) {
-        log.debug("Querying for schema for [{}].[{}].[{}]", databaseName, schemaName, tableName);
+        log.debug("Querying for schema for {}", changeKey);
       }
 
       Map<String, Schema> columnSchemas = new LinkedHashMap<>();
       try (PreparedStatement columnDefinitionStatement = connection.prepareStatement(COLUMN_DEFINITION_SQL)) {
-        columnDefinitionStatement.setString(1, schemaName);
-        columnDefinitionStatement.setString(2, tableName);
+        columnDefinitionStatement.setString(1, changeKey.schemaName);
+        columnDefinitionStatement.setString(2, changeKey.tableName);
         try (ResultSet resultSet = columnDefinitionStatement.executeQuery()) {
           while (resultSet.next()) {
             String columnName = resultSet.getString(1);
-            Schema schema = generateSchema(resultSet, databaseName, schemaName, tableName, columnName);
+            Schema schema = generateSchema(resultSet, changeKey, columnName);
             columnSchemas.put(columnName, schema);
           }
         }
       }
-      return new MsSqlTableMetadata(databaseName, schemaName, tableName, keyColumns, columnSchemas);
+      return new MsSqlTableMetadata(changeKey, keyColumns, columnSchemas);
     }
   }
 
   Schema generateSchema(ResultSet resultSet,
-                        final String databaseName,
-                        final String schemaName,
-                        final String tableName,
+                        final ChangeKey changeKey,
                         final String columnName) throws SQLException {
     boolean optional = resultSet.getBoolean(2);
     String dataType = resultSet.getString(3);
@@ -90,6 +90,9 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
     switch (dataType) {
       case "bigint":
         builder = SchemaBuilder.int64();
+        break;
+      case "bit":
+        builder = SchemaBuilder.bool();
         break;
       case "char":
       case "varchar":
@@ -139,8 +142,8 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
 
       default:
         throw new DataException(
-            String.format("Could not process type for table [%s].[%s].[%s] (dataType = '%s', optional = %s, scale = %d)",
-                databaseName, schemaName, tableName, dataType, optional, scale
+            String.format("Could not process (dataType = '%s', optional = %s, scale = %d) for table %s ",
+                changeKey, dataType, optional, scale
             )
         );
     }
@@ -156,10 +159,10 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
     return builder.build();
   }
 
-  final static String OFFSET_SQL ="SELECT " +
-      "DB_NAME() as [databaseName], " +
-      "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) as [schemaName], " +
-      "OBJECT_NAME(object_id) as [tableName], " +
+  final static String OFFSET_SQL = "SELECT " +
+      "DB_NAME() AS [databaseName], " +
+      "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) AS [schemaName], " +
+      "OBJECT_NAME(object_id) AS [tableName], " +
       "[min_valid_version], " +
       "[begin_version] " +
       "FROM " +
@@ -167,39 +170,63 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
       "WHERE " +
       "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) = ? AND " +
       "OBJECT_NAME(object_id) = ?";
-  
+
+  Map<ChangeKey, Map<String, Object>> cachedOffsets = new HashMap<>();
+
   @Override
-  public Map<String, Object> startOffset(String databaseName, String schemaName, String tableName) throws SQLException {
-    Map<String, Object> sourcePartition = Change.sourcePartition(databaseName, schemaName, tableName);
-    Map<String, Object> offset = this.offsetStorageReader.offset(sourcePartition);
+  public void cacheOffset(ChangeKey changeKey, Map<String, Object> offset) {
+    cachedOffsets.put(changeKey, offset);
+  }
+
+  @Override
+  public Map<String, Object> startOffset(ChangeKey changeKey) throws SQLException {
+    Map<String, Object> offset = cachedOffsets.get(changeKey);
+
+    if(log.isDebugEnabled()) {
+      log.debug("Checking local cache for offset. {}", changeKey);
+    }
 
     if(null!=offset && !offset.isEmpty()) {
       if(log.isDebugEnabled()) {
-        log.debug("Retrieved offset for [{}].[{}].[{}] from offsetStorageReader.", databaseName, schemaName, tableName);
+        log.debug("Returning offset from local cache. {}", changeKey);
       }
       return offset;
     }
 
     if(log.isDebugEnabled()) {
-      log.debug("Querying database for offset of [{}].[{}].[{}]", databaseName, schemaName, tableName);
+      log.debug("Checking kafka for offset {}", changeKey);
     }
 
-    try(Connection connection = openConnection()) {
-      try(PreparedStatement statement = connection.prepareStatement(OFFSET_SQL)) {
-        statement.setString(1, schemaName);
-        statement.setString(2, tableName);
-        try(ResultSet resultSet = statement.executeQuery()) {
-          while(resultSet.next()) {
+    Map<String, Object> sourcePartition = Change.sourcePartition(changeKey);
+    offset = this.offsetStorageReader.offset(sourcePartition);
+
+    if (null != offset && !offset.isEmpty()) {
+      if (log.isDebugEnabled()) {
+        log.debug("Retrieved offset from offsetStorageReader for {}.", changeKey);
+      }
+      return offset;
+    }
+
+    if (log.isDebugEnabled()) {
+      log.debug("Querying database for offset of {}", changeKey);
+    }
+
+    try (Connection connection = openConnection()) {
+      try (PreparedStatement statement = connection.prepareStatement(OFFSET_SQL)) {
+        statement.setString(1, changeKey.schemaName);
+        statement.setString(2, changeKey.tableName);
+        try (ResultSet resultSet = statement.executeQuery()) {
+          while (resultSet.next()) {
             long min_valid_version = resultSet.getLong("min_valid_version");
             Preconditions.checkState(
                 !resultSet.wasNull(),
-                "resultSet did not returned a null for min_valid_version of [%s].[%s].[%s]", databaseName, schemaName, tableName
+                "resultSet did not returned a null for min_valid_version of %s", changeKey
             );
-            if(log.isDebugEnabled()) {
-              log.debug("Found min_valid_version of {} for [{}].[{}].[{}]", min_valid_version, databaseName, schemaName, tableName);
+            if (log.isDebugEnabled()) {
+              log.debug("Found min_valid_version of {} for ", min_valid_version, changeKey);
             }
 
-            offset = MsSqlChange.offset(min_valid_version, false);
+            offset = MsSqlChange.offset(min_valid_version);
           }
         }
       }
@@ -208,12 +235,18 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
     return offset;
   }
 
+
+
   static class MsSqlTableMetadata implements TableMetadata {
     final String databaseName;
     final String schemaName;
     final String tableName;
     final Set<String> keyColumns;
     final Map<String, Schema> columnSchemas;
+
+    MsSqlTableMetadata(ChangeKey changeKey, Set<String> keyColumns, Map<String, Schema> columnSchemas) {
+      this(changeKey.databaseName, changeKey.schemaName, changeKey.tableName, keyColumns, columnSchemas);
+    }
 
     MsSqlTableMetadata(String databaseName, String schemaName, String tableName, Set<String> keyColumns, Map<String, Schema> columnSchemas) {
       this.databaseName = databaseName;

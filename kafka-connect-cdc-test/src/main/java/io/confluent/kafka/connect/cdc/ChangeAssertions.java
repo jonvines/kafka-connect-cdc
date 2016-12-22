@@ -75,17 +75,17 @@ public class ChangeAssertions {
       Change.ColumnValue expectedColumnValue = expected.get(i);
       Change.ColumnValue actualColumnValue = actual.get(i);
 
-      assertEquals(expectedColumnValue.columnName(), actualColumnValue.columnName(), String.format("actual.%s().get(%d).%s() does not match", method, i, "columnName"));
+      assertEquals(expectedColumnValue.columnName(), actualColumnValue.columnName(), String.format("actual.%s().schemas(%d).%s() does not match", method, i, "columnName"));
 
-      assertSchema(expectedColumnValue.schema(), actualColumnValue.schema(), String.format("actual.%s().get(%d).%s() does not match.", method, i, "schema"));
+      assertSchema(expectedColumnValue.schema(), actualColumnValue.schema(), String.format("actual.%s().schemas(%d).%s() does not match.", method, i, "schema"));
 
       if (expectedColumnValue.value() instanceof byte[]) {
         byte[] expectedByteArray = (byte[]) expectedColumnValue.value();
-        assertTrue(actualColumnValue.value() instanceof byte[], String.format("actual.%s().get(%d).%s() should be a byte array.", method, i, "value"));
+        assertTrue(actualColumnValue.value() instanceof byte[], String.format("actual.%s().schemas(%d).%s() should be a byte array.", method, i, "value"));
         byte[] actualByteArray = (byte[]) actualColumnValue.value();
-        assertArrayEquals(expectedByteArray, actualByteArray, String.format("actual.%s().get(%d).%s() does not match", method, i, "value"));
+        assertArrayEquals(expectedByteArray, actualByteArray, String.format("actual.%s().schemas(%d).%s() does not match", method, i, "value"));
       } else {
-        assertEquals(expectedColumnValue.value(), actualColumnValue.value(), String.format("actual.%s().get(%d).%s() does not match", method, i, "value"));
+        assertEquals(expectedColumnValue.value(), actualColumnValue.value(), String.format("actual.%s().schemas(%d).%s() does not match", method, i, "value"));
 
       }
 

@@ -29,16 +29,15 @@ public abstract class CachingTableMetadataProvider<T extends JdbcCDCSourceConnec
     return JdbcUtils.openConnection(this.config);
   }
 
-  protected abstract TableMetadata fetchTableMetadata(String databaseName, String schemaName, String tableName) throws SQLException;
+  protected abstract TableMetadata fetchTableMetadata(ChangeKey changeKey) throws SQLException;
 
   @Override
-  public TableMetadata tableMetadata(String databaseName, String schemaName, String tableName) {
-    final ChangeKey changeKey = new ChangeKey(databaseName, schemaName, tableName);
+  public TableMetadata tableMetadata(ChangeKey changeKey) {
     try {
       return this.tableMetadataCache.get(changeKey, new Callable<TableMetadata>() {
         @Override
         public TableMetadata call() throws Exception {
-          return fetchTableMetadata(databaseName, schemaName, tableName);
+          return fetchTableMetadata(changeKey);
         }
       });
 

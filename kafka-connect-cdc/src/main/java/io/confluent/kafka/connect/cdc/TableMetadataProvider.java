@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.Set;
 
 public interface TableMetadataProvider {
-  TableMetadata tableMetadata(String databaseName, String schemaName, String tableName) throws SQLException;
-  Map<String, Object> startOffset(String databaseName, String schemaName, String tableName) throws SQLException;
-
+  TableMetadata tableMetadata(ChangeKey changeKey) throws SQLException;
+  Map<String, Object> startOffset(ChangeKey changeKey) throws SQLException;
+  void cacheOffset(ChangeKey changeKey, Map<String, Object> offset);
 
   interface TableMetadata {
     String databaseName();

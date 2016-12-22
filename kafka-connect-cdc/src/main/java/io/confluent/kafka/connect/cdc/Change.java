@@ -24,6 +24,15 @@ public interface Change {
     );
   }
 
+  static Map<String, Object> sourcePartition(ChangeKey change) {
+    Preconditions.checkNotNull(change, "change cannot be null.");
+    return ImmutableMap.of(
+        Constants.DATABASE_NAME_VARIABLE, change.databaseName,
+        Constants.SCHEMA_NAME_VARIABLE, change.schemaName,
+        Constants.TABLE_NAME_VARIABLE, change.tableName
+    );
+  }
+
   static Map<String, Object> sourcePartition(String databaseName, String schemaName, String tableName) {
     Preconditions.checkNotNull(databaseName, "databaseName cannot be null.");
     Preconditions.checkNotNull(schemaName, "schemaName cannot be null.");

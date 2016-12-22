@@ -83,24 +83,16 @@ class MsSqlChange implements Change {
     return this.timestamp;
   }
 
-  public static Map<String, Object> offset(long changeVersion, boolean complete) {
+  public static Map<String, Object> offset(long changeVersion) {
     return ImmutableMap.of(
-        "sys_change_version", (Object) changeVersion,
-        "complete", complete
+        "sys_change_version", (Object) changeVersion
     );
   }
 
-  public static long offset(Map<String, Object> sourceOffset) {
+  public static Long offset(Map<String, Object> sourceOffset) {
     Preconditions.checkNotNull(sourceOffset, "sourceOffset cannot be null.");
     Long changeVersion = (Long) sourceOffset.get("sys_change_version");
     Preconditions.checkNotNull(changeVersion, "sourceOffset[\"sys_change_version\"] cannot be null.");
-    if (sourceOffset.containsKey("complete")) {
-      boolean complete = (boolean) sourceOffset.get("complete");
-      if (complete) {
-        changeVersion++;
-      }
-    }
-
     return changeVersion;
   }
 

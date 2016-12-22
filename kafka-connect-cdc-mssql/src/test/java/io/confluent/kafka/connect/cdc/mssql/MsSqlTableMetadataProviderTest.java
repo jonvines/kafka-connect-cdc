@@ -1,6 +1,7 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
 import com.google.common.collect.ImmutableMap;
+import io.confluent.kafka.connect.cdc.ChangeKey;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import io.confluent.kafka.connect.cdc.TestDataUtils;
 import io.confluent.kafka.connect.cdc.mssql.model.MsSqlTableMetadataProviderTestData;
@@ -48,7 +49,7 @@ public class MsSqlTableMetadataProviderTest extends DockerTest {
 
   private void tableMetadata(MsSqlTableMetadataProviderTestData data) throws SQLException {
     assertNotNull(data, "data should not be null.");
-    TableMetadataProvider.TableMetadata actual = this.tableMetadataProvider.tableMetadata("cdc_testing", "dbo", "users");
+    TableMetadataProvider.TableMetadata actual = this.tableMetadataProvider.tableMetadata(new ChangeKey("cdc_testing", "dbo", "users"));
     assertTableMetadata(data.expected(), actual);
   }
 }
