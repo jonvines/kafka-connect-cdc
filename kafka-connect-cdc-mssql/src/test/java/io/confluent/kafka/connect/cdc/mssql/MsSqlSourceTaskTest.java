@@ -105,13 +105,6 @@ public class MsSqlSourceTaskTest extends DockerTest {
     when(this.task.time.milliseconds()).thenReturn(timestamp);
     this.task.queryTable(changeWriter, input.databaseName, input.schemaName, input.tableName);
 
-    if(new ChangeKey("cdc_testing", "dbo", "users").equals(input)) {
-      File outputFile = new File("/Users/jeremy/source/confluent/kafka-connect/public/kafka-connect-cdc/kafka-connect-cdc-mssql/src/test/resources/io/confluent/kafka/connect/cdc/mssql/query/table/cdc_testing/dbo.users.json");
-      JsonChangeList changeList = JsonChangeList.of(actualChanges);
-      JsonChangeList.write(outputFile, changeList);
-    }
-
-
     assertFalse(actualChanges.isEmpty(), "Changes should have been returned.");
     assertEquals(expectedChanges.size(), actualChanges.size(), "The number of changes returned is not the expect count.");
     for (int i = 0; i < expectedChanges.size(); i++) {
