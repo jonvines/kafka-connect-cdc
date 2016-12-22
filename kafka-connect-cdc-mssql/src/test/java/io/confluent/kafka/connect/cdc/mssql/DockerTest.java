@@ -26,7 +26,6 @@ public class DockerTest {
   public static final String JDBCURL_FORMAT = "jdbc:sqlserver://$HOST:$EXTERNAL_PORT;databaseName=%s";
   public static final String CONTAINER_NAME = "mssql";
   public static final String DATABASE_NAME = "cdc_testing";
-  @ClassRule
   public final static DockerComposeRule docker = DockerUtils.loadRule(
       "src/test/resources/docker-compose.yml", "target/mssql",
       CONTAINER_NAME, new JdbcHealthCheck(USERNAME, PASSWORD, PORT, String.format(JDBCURL_FORMAT, "master"))

@@ -7,6 +7,7 @@ import io.confluent.kafka.connect.cdc.ChangeKey;
 import io.confluent.kafka.connect.cdc.ChangeWriter;
 import io.confluent.kafka.connect.cdc.JdbcUtils;
 import io.confluent.kafka.connect.cdc.JsonChangeList;
+import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import org.apache.kafka.common.utils.Time;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
@@ -32,9 +33,10 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class MsSqlSourceTaskTest extends DockerTest {
-  private static final Logger log = LoggerFactory.getLogger(MsSqlSourceTaskTest.class);
-  MsSqlSourceTask task;
+public class QueryServiceTest extends DockerTest {
+  private static final Logger log = LoggerFactory.getLogger(QueryServiceTest.class);
+
+
   MsSqlSourceConnectorConfig config;
 
   @BeforeEach
@@ -44,9 +46,7 @@ public class MsSqlSourceTaskTest extends DockerTest {
         MsSqlSourceConnectorConfig.JDBC_USERNAME_CONF, USERNAME,
         MsSqlSourceConnectorConfig.JDBC_PASSWORD_CONF, PASSWORD
     );
-    this.config = new MsSqlSourceConnectorConfig(settings);
-    this.task = new MsSqlSourceTask();
-    this.task.start(settings);
+    config = new MsSqlSourceConnectorConfig(settings);
   }
 
   @TestFactory
@@ -74,15 +74,6 @@ public class MsSqlSourceTaskTest extends DockerTest {
   }
 
   private void queryTable(ChangeKey input) throws SQLException, IOException {
-    final List<Change> actualChanges = new ArrayList<>(1000);
-    ChangeWriter changeWriter = mock(ChangeWriter.class);
-
-    doAnswer(invocationOnMock -> {
-      Change change = invocationOnMock.getArgumentAt(0, Change.class);
-      actualChanges.add(change);
-      return null;
-    }).when(changeWriter).addChange(any());
-
     JsonChangeList expectedChanges;
     String resourceName = String.format("query/table/%s/%s.%s.json", input.databaseName, input.schemaName, input.tableName);
     long timestamp = 0L;
@@ -98,13 +89,28 @@ public class MsSqlSourceTaskTest extends DockerTest {
       }
     }
 
+    Time time = mock(Time.class);
+    ChangeWriter changeWriter = mock(ChangeWriter.class);
+    TableMetadataProvider tableMetadataProvider = new MsSqlTableMetadataProvider(config);
+    List<Change> actualChanges = new ArrayList<>(1000);
 
-    this.task.time = mock(Time.class);
-    when(this.task.time.milliseconds()).thenReturn(timestamp);
-    this.task.queryTable(changeWriter, input.databaseName, input.schemaName, input.tableName);
+    doAnswer(invocationOnMock -> {
+      Change change = invocationOnMock.getArgumentAt(0, Change.class);
+      actualChanges.add(change);
+      return null;
+    }).when(changeWriter).addChange(any());
+
+    QueryService queryService= new QueryService(time, tableMetadataProvider, config, changeWriter);
+
+    when(time.milliseconds()).thenReturn(timestamp);
+    queryService.queryTable(changeWriter, input.databaseName, input.schemaName, input.tableName);
+
+    if(log.isDebugEnabled()) {
+      log.debug("Found {} change(s).", actualChanges.size());
+    }
 
     assertFalse(actualChanges.isEmpty(), "Changes should have been returned.");
-    assertEquals(expectedChanges.size(), actualChanges.size(), "The number of changes returned is not the expect count.");
+    assertEquals(expectedChanges.size(), actualChanges.size(), "The number of actualChanges returned is not the expect count.");
     for (int i = 0; i < expectedChanges.size(); i++) {
       Change expectedChange = expectedChanges.get(i);
       Change actualChange = actualChanges.get(i);
