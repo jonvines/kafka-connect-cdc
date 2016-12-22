@@ -92,9 +92,16 @@ class MsSqlChange implements Change {
 
   public static long offset(Map<String, Object> sourceOffset) {
     Preconditions.checkNotNull(sourceOffset, "sourceOffset cannot be null.");
-    Object changeVersion = sourceOffset.get("sys_change_version");
+    Long changeVersion = (Long) sourceOffset.get("sys_change_version");
     Preconditions.checkNotNull(changeVersion, "sourceOffset[\"sys_change_version\"] cannot be null.");
-    return (long) changeVersion;
+    if (sourceOffset.containsKey("complete")) {
+      boolean complete = (boolean) sourceOffset.get("complete");
+      if (complete) {
+        changeVersion++;
+      }
+    }
+
+    return changeVersion;
   }
 
   @Override
