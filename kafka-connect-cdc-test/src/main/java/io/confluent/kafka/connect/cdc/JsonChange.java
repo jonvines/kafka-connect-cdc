@@ -205,6 +205,7 @@ public class JsonChange implements Change {
     jsonChange.databaseName = change.databaseName();
     jsonChange.schemaName = change.schemaName();
     jsonChange.tableName = change.tableName();
+    jsonChange.timestamp = change.timestamp();
 
     for (Change.ColumnValue columnValue : change.valueColumns()) {
       JsonColumnValue jsonColumnValue = JsonColumnValue.convert(columnValue);

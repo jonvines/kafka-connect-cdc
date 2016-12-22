@@ -1,5 +1,6 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.ChangeKey;
@@ -7,6 +8,7 @@ import io.confluent.kafka.connect.cdc.ChangeWriter;
 import io.confluent.kafka.connect.cdc.JdbcUtils;
 import io.confluent.kafka.connect.cdc.JsonChange;
 import io.confluent.kafka.connect.cdc.JsonChangeList;
+import org.apache.kafka.common.utils.Time;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,11 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static io.confluent.kafka.connect.cdc.ChangeAssertions.assertChange;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 public class MsSqlSourceTaskTest extends DockerTest {
   private static final Logger log = LoggerFactory.getLogger(MsSqlSourceTaskTest.class);
@@ -72,17 +76,50 @@ public class MsSqlSourceTaskTest extends DockerTest {
   }
 
   private void queryTable(ChangeKey input) throws SQLException, IOException {
-    final List<Change> changes = new ArrayList<>(1000);
+    final List<Change> actualChanges = new ArrayList<>(1000);
     ChangeWriter changeWriter = mock(ChangeWriter.class);
 
     doAnswer(invocationOnMock -> {
       Change change = invocationOnMock.getArgumentAt(0, Change.class);
-      changes.add(change);
+      actualChanges.add(change);
       return null;
     }).when(changeWriter).addChange(any());
 
+    JsonChangeList expectedChanges;
+    String resourceName = String.format("query/table/%s/%s.%s.json", input.databaseName, input.schemaName, input.tableName);
+    long timestamp = 0L;
+    try (InputStream stream = this.getClass().getResourceAsStream(resourceName)) {
+      Preconditions.checkNotNull(stream, "Could not find resource %s.", resourceName);
+      if (log.isInfoEnabled()) {
+        log.info("Loading expected changes from {}", resourceName);
+      }
+      expectedChanges = JsonChangeList.read(stream);
+      for (Change change : expectedChanges) {
+        timestamp = change.timestamp();
+        break;
+      }
+    }
+
+
+    this.task.time = mock(Time.class);
+    when(this.task.time.milliseconds()).thenReturn(timestamp);
     this.task.queryTable(changeWriter, input.databaseName, input.schemaName, input.tableName);
-    assertFalse(changes.isEmpty(), "Changes should have been returned.");
+
+    if(new ChangeKey("cdc_testing", "dbo", "users").equals(input)) {
+      File outputFile = new File("/Users/jeremy/source/confluent/kafka-connect/public/kafka-connect-cdc/kafka-connect-cdc-mssql/src/test/resources/io/confluent/kafka/connect/cdc/mssql/query/table/cdc_testing/dbo.users.json");
+      JsonChangeList changeList = JsonChangeList.of(actualChanges);
+      JsonChangeList.write(outputFile, changeList);
+    }
+
+
+    assertFalse(actualChanges.isEmpty(), "Changes should have been returned.");
+    assertEquals(expectedChanges.size(), actualChanges.size(), "The number of changes returned is not the expect count.");
+    for (int i = 0; i < expectedChanges.size(); i++) {
+      Change expectedChange = expectedChanges.get(i);
+      Change actualChange = actualChanges.get(i);
+      assertChange(expectedChange, actualChange);
+    }
+
   }
 
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 
 
 public class JsonChangeList extends ArrayList<JsonChange> {
@@ -21,5 +22,14 @@ public class JsonChangeList extends ArrayList<JsonChange> {
 
   public static JsonChangeList read(InputStream inputStream) throws IOException {
     return ObjectMapperFactory.instance.readValue(inputStream, JsonChangeList.class);
+  }
+
+  public static JsonChangeList of(Collection<Change> changes) {
+    JsonChangeList jsonChanges = new JsonChangeList();
+    for(Change c:changes){
+      JsonChange jsonChange = JsonChange.convert(c);
+      jsonChanges.add(jsonChange);
+    }
+    return jsonChanges;
   }
 }

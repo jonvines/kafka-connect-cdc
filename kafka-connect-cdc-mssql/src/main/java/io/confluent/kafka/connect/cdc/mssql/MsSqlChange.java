@@ -5,13 +5,16 @@ import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import org.apache.kafka.common.utils.Time;
+import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.Schema;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 class MsSqlChange implements Change {
   @Override
@@ -136,6 +139,7 @@ class MsSqlChange implements Change {
   }
 
   static class Builder {
+    static Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
     public MsSqlChange build(TableMetadataProvider.TableMetadata tableMetadata, ResultSet resultSet, Time time) throws SQLException {
       MsSqlChange change = new MsSqlChange();
@@ -181,9 +185,20 @@ class MsSqlChange implements Change {
           // Really lame Microsoft. A tiny int is stored as a single byte with a value of 0-255.
           // Explain how this should be returned as a short?
           value = resultSet.getByte(columnName);
+        } else if (Schema.Type.INT32 == schema.type() &&
+            Date.LOGICAL_NAME.equals(schema.name())) {
+          value = new java.util.Date(
+              resultSet.getDate(columnName, calendar).getTime()
+          );
+        } else if (Schema.Type.INT32 == schema.type() &&
+            org.apache.kafka.connect.data.Time.LOGICAL_NAME.equals(schema.name())) {
+          value = new java.util.Date(
+              resultSet.getTime(columnName, calendar).getTime()
+          );
         } else {
           value = resultSet.getObject(columnName);
         }
+
 
         MsSqlColumnValue columnValue = new MsSqlColumnValue(columnName, schema, value);
         change.valueColumns.add(columnValue);
