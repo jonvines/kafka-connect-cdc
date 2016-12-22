@@ -34,7 +34,7 @@
     }
   }, {
     "columnName" : "value",
-    "value" : "10:50:00",
+    "value" : 39000000,
     "schema" : {
       "name" : "org.apache.kafka.connect.data.Time",
       "type" : "INT32",

@@ -34,7 +34,7 @@
     }
   }, {
     "columnName" : "value",
-    "value" : "2011-07-01",
+    "value" : 15156,
     "schema" : {
       "name" : "org.apache.kafka.connect.data.Date",
       "type" : "INT32",
