@@ -1,10 +1,13 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.ChangeWriter;
 import io.confluent.kafka.connect.cdc.JdbcUtils;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import org.apache.kafka.common.utils.Time;
+import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +15,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 class QueryService extends AbstractExecutionThreadService {
   private static final Logger log = LoggerFactory.getLogger(QueryService.class);
@@ -50,25 +54,37 @@ class QueryService extends AbstractExecutionThreadService {
       TableMetadataProvider.TableMetadata tableMetadata = this.tableMetadataProvider.tableMetadata(databaseName, schemaName, tableName);
       MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(connection);
 
+      Map<String, Object> sourcePartition = Change.sourcePartition(databaseName, schemaName, tableName);
+      Map<String, Object> startOffset = this.tableMetadataProvider.startOffset(databaseName, schemaName, tableName);
+      long offset = MsSqlChange.offset(startOffset);
+
+      if(log.isDebugEnabled()) {
+        log.debug("Starting [{}].[{}].[{}] at offset {}", databaseName, schemaName, tableName, offset);
+      }
+
       try (PreparedStatement statement = queryBuilder.changeTrackingStatement(tableMetadata)) {
-        statement.setLong(1, 0);
+        statement.setLong(1, offset);
 
         long count = 0;
 
         try (ResultSet resultSet = statement.executeQuery()) {
           MsSqlChange change = null;
 
+          long changeVersion = 10;
           while (resultSet.next()) {
             if (null != change) {
               changeWriter.addChange(change);
             }
 
+            changeVersion = resultSet.getLong("__metadata_sys_change_version");
             MsSqlChange.Builder builder = MsSqlChange.builder();
             change = builder.build(tableMetadata, resultSet, this.time);
+            change.sourcePartition = sourcePartition;
+            change.sourceOffset = MsSqlChange.offset(changeVersion, false);
             count++;
           }
-
           if (null != change) {
+            change.sourceOffset = MsSqlChange.offset(changeVersion, true);
             changeWriter.addChange(change);
           }
         }

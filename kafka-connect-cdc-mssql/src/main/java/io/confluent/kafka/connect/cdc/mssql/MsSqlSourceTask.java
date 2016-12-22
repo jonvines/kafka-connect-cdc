@@ -35,7 +35,7 @@ public class MsSqlSourceTask extends CDCSourceTask<MsSqlSourceConnectorConfig> i
 
 
 
-    this.tableMetadataProvider = new MsSqlTableMetadataProvider(this.config);
+    this.tableMetadataProvider = new MsSqlTableMetadataProvider(this.config, context.offsetStorageReader());
   }
 
   @Override

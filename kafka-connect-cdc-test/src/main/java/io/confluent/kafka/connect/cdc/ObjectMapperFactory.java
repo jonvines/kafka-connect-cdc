@@ -16,6 +16,7 @@ public class ObjectMapperFactory {
     instance.configure(SerializationFeature.INDENT_OUTPUT, true);
     instance.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
     instance.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
+    instance.configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
 
     SimpleModule simpleModule = new SimpleModule();
     simpleModule.addSerializer(Schema.class, new SchemaSerializer());

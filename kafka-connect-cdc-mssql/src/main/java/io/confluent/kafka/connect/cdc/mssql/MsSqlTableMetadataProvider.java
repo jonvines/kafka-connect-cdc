@@ -1,5 +1,6 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.CachingTableMetadataProvider;
 import io.confluent.kafka.connect.cdc.Change;
@@ -10,6 +11,7 @@ import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Time;
 import org.apache.kafka.connect.data.Timestamp;
 import org.apache.kafka.connect.errors.DataException;
+import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +35,8 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
           "numeric_scale FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? " +
           "ORDER BY ORDINAL_POSITION";
 
-  public MsSqlTableMetadataProvider(MsSqlSourceConnectorConfig config) {
-    super(config);
+  public MsSqlTableMetadataProvider(MsSqlSourceConnectorConfig config, OffsetStorageReader offsetStorageReader) {
+    super(config, offsetStorageReader);
   }
 
   @Override
@@ -152,6 +154,58 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
     }
 
     return builder.build();
+  }
+
+  final static String OFFSET_SQL ="SELECT " +
+      "DB_NAME() as [databaseName], " +
+      "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) as [schemaName], " +
+      "OBJECT_NAME(object_id) as [tableName], " +
+      "[min_valid_version], " +
+      "[begin_version] " +
+      "FROM " +
+      "[sys].[change_tracking_tables] " +
+      "WHERE " +
+      "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) = ? AND " +
+      "OBJECT_NAME(object_id) = ?";
+  
+  @Override
+  public Map<String, Object> startOffset(String databaseName, String schemaName, String tableName) throws SQLException {
+    Map<String, Object> sourcePartition = Change.sourcePartition(databaseName, schemaName, tableName);
+    Map<String, Object> offset = this.offsetStorageReader.offset(sourcePartition);
+
+    if(null!=offset && !offset.isEmpty()) {
+      if(log.isDebugEnabled()) {
+        log.debug("Retrieved offset for [{}].[{}].[{}] from offsetStorageReader.", databaseName, schemaName, tableName);
+      }
+      return offset;
+    }
+
+    if(log.isDebugEnabled()) {
+      log.debug("Querying database for offset of [{}].[{}].[{}]", databaseName, schemaName, tableName);
+    }
+
+    try(Connection connection = openConnection()) {
+      try(PreparedStatement statement = connection.prepareStatement(OFFSET_SQL)) {
+        statement.setString(1, schemaName);
+        statement.setString(2, tableName);
+        try(ResultSet resultSet = statement.executeQuery()) {
+          while(resultSet.next()) {
+            long min_valid_version = resultSet.getLong("min_valid_version");
+            Preconditions.checkState(
+                !resultSet.wasNull(),
+                "resultSet did not returned a null for min_valid_version of [%s].[%s].[%s]", databaseName, schemaName, tableName
+            );
+            if(log.isDebugEnabled()) {
+              log.debug("Found min_valid_version of {} for [{}].[{}].[{}]", min_valid_version, databaseName, schemaName, tableName);
+            }
+
+            offset = MsSqlChange.offset(min_valid_version, false);
+          }
+        }
+      }
+    }
+
+    return offset;
   }
 
   static class MsSqlTableMetadata implements TableMetadata {

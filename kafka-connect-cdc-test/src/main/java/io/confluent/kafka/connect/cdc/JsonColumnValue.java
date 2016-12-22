@@ -35,44 +35,35 @@ public class JsonColumnValue implements Change.ColumnValue {
 
   static Object int8(Object o) {
     if (o instanceof Long) {
-      Long integer = (Long) o;
-      return integer.byteValue();
-    }
-    if (o instanceof Integer) {
-      Integer integer = (Integer) o;
-      return integer.byteValue();
+      Number number = (Number) o;
+      return number.byteValue();
     }
     return o;
   }
 
   static Object int16(Object o) {
     if (o instanceof Long) {
-      Long integer = (Long) o;
-      return integer.shortValue();
-    }
-    if (o instanceof Integer) {
-      Integer integer = (Integer) o;
-      return integer.shortValue();
+      Number number = (Number) o;
+      return number.shortValue();
     }
     return o;
   }
 
   static Object int32(Object o) {
     if (o instanceof Long) {
-      Long integer = (Long) o;
-      return integer.intValue();
+      Number number = (Number) o;
+      return number.intValue();
     }
 
     return o;
   }
 
-  static Object int64(Object o) {
-    if (o instanceof Integer) {
-      Integer integer = (Integer) o;
-      return integer.longValue();
+  static Object int64(Object value) {
+    if (value instanceof Number) {
+      Number number = (Number) value;
+      return number.longValue();
     }
-
-    return o;
+    return value;
   }
 
   static Object float64(Object o) {
@@ -110,29 +101,25 @@ public class JsonColumnValue implements Change.ColumnValue {
   }
 
   static Object date(Schema schema, Object value) {
-    if (value instanceof Integer) {
-      Integer intValue = (Integer) value;
-      return Date.toLogical(schema, intValue.intValue());
+    if (value instanceof Number) {
+      Number number = (Number) value;
+      return Date.toLogical(schema, number.intValue());
     }
     return value;
   }
 
   static Object time(Schema schema, Object value) {
-    if (value instanceof Integer) {
-      Integer intValue = (Integer) value;
-      return Time.toLogical(schema, intValue.intValue());
+    if (value instanceof Number) {
+      Number number = (Number) value;
+      return Time.toLogical(schema, number.intValue());
     }
     return value;
   }
 
   static Object timestamp(Schema schema, Object value) {
-    if (value instanceof Long) {
-      Long longValue = (Long) value;
-      return Timestamp.toLogical(schema, longValue.longValue());
-    }
-    if (value instanceof Integer) {
-      Integer integerValue = (Integer) value;
-      return Timestamp.toLogical(schema, integerValue.longValue());
+    if (value instanceof Number) {
+      Number number = (Number) value;
+      return Timestamp.toLogical(schema, number.longValue());
     }
     return value;
   }

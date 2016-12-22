@@ -22,7 +22,6 @@ public class MsSqlQueryBuilderTest {
   public void before() throws SQLException {
     this.connection = mock(Connection.class);
     this.statement = mock(PreparedStatement.class);
-//    when(this.connection.prepareStatement(anyString())).thenReturn(this.statement);
   }
 
   @Test

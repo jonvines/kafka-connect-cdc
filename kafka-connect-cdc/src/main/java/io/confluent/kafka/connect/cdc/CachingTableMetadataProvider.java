@@ -3,6 +3,7 @@ package io.confluent.kafka.connect.cdc;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.kafka.connect.errors.DataException;
+import org.apache.kafka.connect.storage.OffsetStorageReader;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -10,16 +11,18 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public abstract class CachingTableMetadataProvider implements TableMetadataProvider {
-  final JdbcCDCSourceConnectorConfig config;
+public abstract class CachingTableMetadataProvider<T extends JdbcCDCSourceConnectorConfig> implements TableMetadataProvider {
+  protected final T config;
+  protected final OffsetStorageReader offsetStorageReader;
   final Cache<ChangeKey, TableMetadata> tableMetadataCache;
 
-  public CachingTableMetadataProvider(JdbcCDCSourceConnectorConfig config) {
+  public CachingTableMetadataProvider(T config, OffsetStorageReader offsetStorageReader) {
     this.config = config;
     this.tableMetadataCache = CacheBuilder
         .newBuilder()
         .expireAfterWrite(config.schemaCacheMs, TimeUnit.MILLISECONDS)
         .build();
+    this.offsetStorageReader = offsetStorageReader;
   }
 
   protected Connection openConnection() throws SQLException {

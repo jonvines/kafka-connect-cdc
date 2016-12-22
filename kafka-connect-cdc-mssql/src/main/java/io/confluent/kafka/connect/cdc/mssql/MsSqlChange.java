@@ -1,6 +1,7 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
@@ -80,6 +81,20 @@ class MsSqlChange implements Change {
   @Override
   public long timestamp() {
     return this.timestamp;
+  }
+
+  public static Map<String, Object> offset(long changeVersion, boolean complete) {
+    return ImmutableMap.of(
+        "sys_change_version", (Object) changeVersion,
+        "complete", complete
+    );
+  }
+
+  public static long offset(Map<String, Object> sourceOffset) {
+    Preconditions.checkNotNull(sourceOffset, "sourceOffset cannot be null.");
+    Object changeVersion = sourceOffset.get("sys_change_version");
+    Preconditions.checkNotNull(changeVersion, "sourceOffset[\"sys_change_version\"] cannot be null.");
+    return (long) changeVersion;
   }
 
   @Override

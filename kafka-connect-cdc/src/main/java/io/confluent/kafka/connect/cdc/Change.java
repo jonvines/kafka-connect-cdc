@@ -1,5 +1,7 @@
 package io.confluent.kafka.connect.cdc;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.connect.data.Schema;
 
 import java.util.List;
@@ -12,6 +14,26 @@ public interface Change {
   public static final String DATABASE_NAME = "io.confluent.kafka.connect.cdc.change.database.name";
   public static final String SCHEMA_NAME = "io.confluent.kafka.connect.cdc.change.schema.name";
   public static final String TABLE_NAME = "io.confluent.kafka.connect.cdc.change.table.name";
+
+  static Map<String, Object> sourcePartition(Change change) {
+    Preconditions.checkNotNull(change, "change cannot be null.");
+    return ImmutableMap.of(
+        Constants.DATABASE_NAME_VARIABLE, change.databaseName(),
+        Constants.SCHEMA_NAME_VARIABLE, change.schemaName(),
+        Constants.TABLE_NAME_VARIABLE, change.tableName()
+    );
+  }
+
+  static Map<String, Object> sourcePartition(String databaseName, String schemaName, String tableName) {
+    Preconditions.checkNotNull(databaseName, "databaseName cannot be null.");
+    Preconditions.checkNotNull(schemaName, "schemaName cannot be null.");
+    Preconditions.checkNotNull(tableName, "tableName cannot be null.");
+    return ImmutableMap.of(
+        Constants.DATABASE_NAME_VARIABLE, databaseName,
+        Constants.SCHEMA_NAME_VARIABLE, schemaName,
+        Constants.TABLE_NAME_VARIABLE, tableName
+    );
+  }
 
   /**
    * Metadata for the change.

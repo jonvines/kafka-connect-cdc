@@ -9,6 +9,7 @@ import io.confluent.kafka.connect.cdc.JdbcUtils;
 import io.confluent.kafka.connect.cdc.JsonChangeList;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import org.apache.kafka.common.utils.Time;
+import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -75,7 +76,9 @@ public class QueryServiceTest extends DockerTest {
 
   private void queryTable(ChangeKey input) throws SQLException, IOException {
     JsonChangeList expectedChanges;
-    String resourceName = String.format("query/table/%s/%s.%s.json", input.databaseName, input.schemaName, input.tableName);
+    String fileName = String.format("%s.%s.json", input.schemaName, input.tableName);
+    String resourceName = String.format("query/table/%s/%s", input.databaseName, fileName);
+
     long timestamp = 0L;
     try (InputStream stream = this.getClass().getResourceAsStream(resourceName)) {
       Preconditions.checkNotNull(stream, "Could not find resource %s.", resourceName);
@@ -89,9 +92,10 @@ public class QueryServiceTest extends DockerTest {
       }
     }
 
+    OffsetStorageReader offsetStorageReader = mock(OffsetStorageReader.class);
+    TableMetadataProvider tableMetadataProvider = new MsSqlTableMetadataProvider(config, offsetStorageReader);
     Time time = mock(Time.class);
     ChangeWriter changeWriter = mock(ChangeWriter.class);
-    TableMetadataProvider tableMetadataProvider = new MsSqlTableMetadataProvider(config);
     List<Change> actualChanges = new ArrayList<>(1000);
 
     doAnswer(invocationOnMock -> {
@@ -100,12 +104,17 @@ public class QueryServiceTest extends DockerTest {
       return null;
     }).when(changeWriter).addChange(any());
 
-    QueryService queryService= new QueryService(time, tableMetadataProvider, config, changeWriter);
+
+    QueryService queryService = new QueryService(time, tableMetadataProvider, config, changeWriter);
 
     when(time.milliseconds()).thenReturn(timestamp);
     queryService.queryTable(changeWriter, input.databaseName, input.schemaName, input.tableName);
 
-    if(log.isDebugEnabled()) {
+    verify(offsetStorageReader, only()).offset(anyMap());
+    verify(time, atLeastOnce()).milliseconds();
+
+
+    if (log.isDebugEnabled()) {
       log.debug("Found {} change(s).", actualChanges.size());
     }
 
@@ -116,7 +125,6 @@ public class QueryServiceTest extends DockerTest {
       Change actualChange = actualChanges.get(i);
       assertChange(expectedChange, actualChange);
     }
-
   }
 
 }

@@ -5,6 +5,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 
+import java.util.Map;
+
 public class ChangeKey implements Comparable<ChangeKey> {
   public final String databaseName;
   public final String schemaName;
@@ -57,5 +59,9 @@ public class ChangeKey implements Comparable<ChangeKey> {
     } else {
       return false;
     }
+  }
+
+  public Map<String, Object> sourcePartition() {
+    return Change.sourcePartition(this.databaseName, this.schemaName, this.tableName);
   }
 }

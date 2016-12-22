@@ -230,6 +230,9 @@ class SchemaGenerator {
             Change.TABLE_NAME, change.tableName()
         )
     );
+
+
+
     return builder.build();
   }
 

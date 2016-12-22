@@ -41,7 +41,7 @@
     }
   }, {
     "columnName" : "value",
-    "value" : 1309478400000,
+    "value" : 15156,
     "schema" : {
       "name" : "org.apache.kafka.connect.data.Date",
       "type" : "INT32",
