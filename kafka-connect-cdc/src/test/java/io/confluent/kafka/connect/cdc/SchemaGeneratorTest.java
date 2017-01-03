@@ -1,7 +1,6 @@
 package io.confluent.kafka.connect.cdc;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static io.confluent.kafka.connect.cdc.ChangeAssertions.assertSchema;
+import static io.confluent.kafka.connect.cdc.Assertions.assertSchema;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;

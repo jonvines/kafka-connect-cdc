@@ -77,31 +77,31 @@ public class ChangeAssertions {
 
       assertEquals(expectedColumnValue.columnName(), actualColumnValue.columnName(), String.format("actual.%s().schemas(%d).%s() does not match", method, i, "columnName"));
 
-      assertSchema(expectedColumnValue.schema(), actualColumnValue.schema(), String.format("actual.%s().schemas(%d).%s() does not match.", method, i, "schema"));
+      assertSchema(expectedColumnValue.schema(), actualColumnValue.schema(), String.format("actual.%s().schemas(%s).%s() does not match.", method, expectedColumnValue.columnName(), "schema"));
 
       if (expectedColumnValue.value() instanceof byte[]) {
         byte[] expectedByteArray = (byte[]) expectedColumnValue.value();
-        assertTrue(actualColumnValue.value() instanceof byte[], String.format("actual.%s().schemas(%d).%s() should be a byte array.", method, i, "value"));
+        assertTrue(actualColumnValue.value() instanceof byte[], String.format("actual.%s().schemas(%s).%s() should be a byte array.", method, expectedColumnValue.columnName(), "value"));
         byte[] actualByteArray = (byte[]) actualColumnValue.value();
-        assertArrayEquals(expectedByteArray, actualByteArray, String.format("actual.%s().schemas(%d).%s() does not match", method, i, "value"));
+        assertArrayEquals(expectedByteArray, actualByteArray, String.format("actual.%s().schemas(%s).%s() does not match", method, expectedColumnValue.columnName(), "value"));
       } else {
-        assertEquals(expectedColumnValue.value(), actualColumnValue.value(), String.format("actual.%s().schemas(%d).%s() does not match", method, i, "value"));
-
+        assertEquals(expectedColumnValue.value(), actualColumnValue.value(), String.format("actual.%s().columns(%s).%s() does not match", method, expectedColumnValue.columnName(), "value"));
       }
-
     }
-
   }
 
   public static void assertChange(Change expected, Change actual) {
     assertNotNull(expected, "expected should not be null");
     assertNotNull(actual, "actual should not be null");
 
+    assertEquals(expected.databaseName(), actual.databaseName(), "databaseName does not match.");
     assertEquals(expected.schemaName(), actual.schemaName(), "schemaName does not match.");
     assertEquals(expected.tableName(), actual.tableName(), "tableName does not match.");
     assertEquals(expected.changeType(), actual.changeType(), "changeType does not match.");
     assertEquals(expected.timestamp(), actual.timestamp(), "timestamp does not match.");
 
+    assertNotNull(expected.metadata(), "expected.metadata() cannot be null.");
+    assertNotNull(actual.metadata(), "expected.metadata() cannot be null.");
     assertMap(expected.metadata(), actual.metadata(), "metadata");
     assertMap(expected.sourceOffset(), actual.sourceOffset(), "sourceOffset");
     assertMap(expected.sourcePartition(), actual.sourcePartition(), "sourcePartition");
@@ -118,6 +118,14 @@ public class ChangeAssertions {
     String prefix = Strings.isNullOrEmpty(message) ? "" : message + ": ";
     assertNotNull(expected, prefix + "expected should not be null.");
     assertNotNull(actual, prefix + "actual should not be null.");
+
+    assertNotNull(expected.columnSchemas(), prefix + "expected.columnSchemas() should not be null.");
+    assertNotNull(actual.columnSchemas(), prefix + "actual.columnSchemas() should not be null.");
+
+    assertEquals(expected.databaseName(), actual.databaseName(), prefix + "databaseName does not match.");
+    assertEquals(expected.schemaName(), actual.schemaName(), prefix + "schemaName does not match.");
+    assertEquals(expected.tableName(), actual.tableName(), prefix + "tableName does not match.");
+    assertEquals(expected.keyColumns(), actual.keyColumns(), prefix + "keyColumns() does not match.");
   }
 
 }

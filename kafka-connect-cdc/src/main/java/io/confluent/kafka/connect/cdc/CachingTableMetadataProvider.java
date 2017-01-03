@@ -7,6 +7,8 @@ import org.apache.kafka.connect.storage.OffsetStorageReader;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +30,14 @@ public abstract class CachingTableMetadataProvider<T extends JdbcCDCSourceConnec
   protected Connection openConnection() throws SQLException {
     return JdbcUtils.openConnection(this.config);
   }
+
+  protected Map<ChangeKey, Map<String, Object>> cachedOffsets = new HashMap<>();
+
+  @Override
+  public void cacheOffset(ChangeKey changeKey, Map<String, Object> offset) {
+    cachedOffsets.put(changeKey, offset);
+  }
+
 
   protected abstract TableMetadata fetchTableMetadata(ChangeKey changeKey) throws SQLException;
 

@@ -15,18 +15,18 @@ public class JsonChangeTest {
   public void serialize() throws IOException {
     JsonChange expected = new JsonChange();
     expected.metadata = ImmutableMap.of("one", "1", "two", "2");
-    expected.sourcePartition = ImmutableMap.of("partition", (Object) 1);
-    expected.sourceOffset = ImmutableMap.of("testing", (Object) 1);
+    expected.sourcePartition = ImmutableMap.of("partition", (Object) 1L);
+    expected.sourceOffset = ImmutableMap.of("testing", (Object) 1L);
     expected.schemaName = "schemaName";
     expected.tableName = "tableName";
     expected.changeType = Change.ChangeType.INSERT;
     expected.timestamp = 1482095102000L;
 
     expected.keyColumns.add(
-        new JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
+        new JsonChange.JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
     );
     expected.valueColumns.add(
-        new JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
+        new JsonChange.JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
     );
 
 
@@ -50,10 +50,10 @@ public class JsonChangeTest {
     thisChange.timestamp = 1482095102000L;
 
     thisChange.keyColumns.add(
-        new JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
+        new JsonChange.JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
     );
     thisChange.valueColumns.add(
-        new JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
+        new JsonChange.JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
     );
 
     JsonChange thatChange = new JsonChange();
@@ -66,10 +66,10 @@ public class JsonChangeTest {
     thatChange.timestamp = 1482095102000L;
 
     thatChange.keyColumns.add(
-        new JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
+        new JsonChange.JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
     );
     thatChange.valueColumns.add(
-        new JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
+        new JsonChange.JsonColumnValue("user_id", Schema.INT32_SCHEMA, 1)
     );
 
     assertChange(thisChange, thatChange);

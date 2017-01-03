@@ -25,7 +25,7 @@ public class JdbcUtils {
       }
       return DriverManager.getConnection(jdbcUrl, jdbcUsername, jdbcPassword);
     } catch (SQLException ex) {
-      throw new DataException("Exception thrown while connecting to postgres.", ex);
+      throw new DataException("Exception thrown while connecting to database.", ex);
     }
   }
 

@@ -3,11 +3,17 @@ package io.confluent.kafka.connect.cdc;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 
+import java.io.IOException;
 import java.util.Map;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
@@ -142,5 +148,21 @@ public class JsonConnectSchema {
     }
 
     return true;
+  }
+
+  public static class SchemaModule extends SimpleModule {
+    public SchemaModule() {
+      super();
+      addSerializer(Schema.class, new SchemaSerializer());
+      addDeserializer(Schema.class, new SchemaDeserializer());
+    }
+  }
+
+  static class SchemaSerializer extends JsonSerializer<Schema> {
+    @Override
+    public void serialize(Schema schema, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+      JsonConnectSchema jsonConnectSchema = new JsonConnectSchema(schema);
+      jsonGenerator.writeObject(jsonConnectSchema);
+    }
   }
 }

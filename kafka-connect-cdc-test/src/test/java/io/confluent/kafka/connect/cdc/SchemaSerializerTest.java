@@ -4,7 +4,6 @@ import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Schema;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import static io.confluent.kafka.connect.cdc.ChangeAssertions.assertSchema;
@@ -16,14 +15,7 @@ public class SchemaSerializerTest {
         .optional()
         .doc("This is for testing")
         .build();
-
-    byte[] buffer;
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      ObjectMapperFactory.instance.writeValue(outputStream, expected);
-      outputStream.flush();
-      buffer = outputStream.toByteArray();
-    }
-
+    byte[] buffer=ObjectMapperFactory.instance.writeValueAsBytes(expected);
     final Schema actual = ObjectMapperFactory.instance.readValue(buffer, Schema.class);
     assertSchema(expected, actual);
   }

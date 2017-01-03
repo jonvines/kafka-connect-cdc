@@ -20,7 +20,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -171,29 +170,23 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
       "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) = ? AND " +
       "OBJECT_NAME(object_id) = ?";
 
-  Map<ChangeKey, Map<String, Object>> cachedOffsets = new HashMap<>();
-
-  @Override
-  public void cacheOffset(ChangeKey changeKey, Map<String, Object> offset) {
-    cachedOffsets.put(changeKey, offset);
-  }
 
   @Override
   public Map<String, Object> startOffset(ChangeKey changeKey) throws SQLException {
-    Map<String, Object> offset = cachedOffsets.get(changeKey);
+    Map<String, Object> offset = (Map<String, Object>) cachedOffsets.get(changeKey);
 
-    if(log.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
       log.debug("Checking local cache for offset. {}", changeKey);
     }
 
-    if(null!=offset && !offset.isEmpty()) {
-      if(log.isDebugEnabled()) {
+    if (null != offset && !offset.isEmpty()) {
+      if (log.isDebugEnabled()) {
         log.debug("Returning offset from local cache. {}", changeKey);
       }
       return offset;
     }
 
-    if(log.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
       log.debug("Checking kafka for offset {}", changeKey);
     }
 
@@ -234,7 +227,6 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
 
     return offset;
   }
-
 
 
   static class MsSqlTableMetadata implements TableMetadata {
