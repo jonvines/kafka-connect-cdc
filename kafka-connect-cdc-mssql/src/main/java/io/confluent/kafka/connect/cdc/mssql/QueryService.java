@@ -136,7 +136,7 @@ class QueryService extends AbstractExecutionThreadService {
         }
 
         if (log.isInfoEnabled()) {
-          log.info("{}: Processed {} record(s) for [{}].", changeKey, count);
+          log.info("{}: Processed {} record(s).", changeKey, count);
         }
 
       } finally {

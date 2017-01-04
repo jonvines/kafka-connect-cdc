@@ -6,7 +6,7 @@
         <dependency>
             <groupId>io.confluent.kafka.connect</groupId>
             <artifactId>kafka-connect-cdc</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
@@ -19,7 +19,7 @@
         <dependency>
             <groupId>io.confluent.kafka.connect</groupId>
             <artifactId>kafka-connect-cdc-test</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

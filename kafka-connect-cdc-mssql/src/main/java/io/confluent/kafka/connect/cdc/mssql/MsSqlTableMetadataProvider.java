@@ -42,9 +42,13 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
 
   @Override
   protected TableMetadata fetchTableMetadata(ChangeKey changeKey) throws SQLException {
+    if (log.isInfoEnabled()) {
+      log.info("{}: querying database for metadata.", changeKey);
+    }
+
     try (Connection connection = openConnection()) {
-      if (log.isDebugEnabled()) {
-        log.debug("Querying for primary keys for {}", changeKey);
+      if (log.isTraceEnabled()) {
+        log.trace("{}: Querying for primary keys.", changeKey);
       }
 
       Set<String> keyColumns = new LinkedHashSet<>();
@@ -58,8 +62,8 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
         }
       }
 
-      if (log.isDebugEnabled()) {
-        log.debug("Querying for schema for {}", changeKey);
+      if (log.isTraceEnabled()) {
+        log.trace("{}: Querying for schema.", changeKey);
       }
 
       Map<String, Schema> columnSchemas = new LinkedHashMap<>();
@@ -85,6 +89,10 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
     String dataType = resultSet.getString(3);
     int scale = resultSet.getInt(4);
     SchemaBuilder builder;
+
+    if (log.isTraceEnabled()) {
+      log.trace("{}: columnName='{}' dataType='{}' scale={} optional={}", changeKey, columnName, dataType, scale, optional);
+    }
 
     switch (dataType) {
       case "bigint":
@@ -141,10 +149,14 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
 
       default:
         throw new DataException(
-            String.format("Could not process (dataType = '%s', optional = %s, scale = %d) for table %s ",
-                changeKey, dataType, optional, scale
+            String.format("Could not process (dataType = '%s', optional = %s, scale = %d) for %s.",
+                dataType, optional, scale, changeKey
             )
         );
+    }
+
+    if (log.isTraceEnabled()) {
+      log.trace("{}: columnName='{}' schema.type='{}' schema.name='{}'", changeKey, columnName, builder.type(), builder.name());
     }
 
     builder.parameters(
@@ -175,33 +187,37 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
   public Map<String, Object> startOffset(ChangeKey changeKey) throws SQLException {
     Map<String, Object> offset = (Map<String, Object>) cachedOffsets.get(changeKey);
 
-    if (log.isDebugEnabled()) {
-      log.debug("Checking local cache for offset. {}", changeKey);
+    if(log.isInfoEnabled()) {
+      log.info("{}: Determining start offset.", changeKey);
+    }
+
+    if (log.isTraceEnabled()) {
+      log.trace("{}: Checking local cache for offset.", changeKey);
     }
 
     if (null != offset && !offset.isEmpty()) {
-      if (log.isDebugEnabled()) {
-        log.debug("Returning offset from local cache. {}", changeKey);
+      if (log.isTraceEnabled()) {
+        log.trace("{}: Returning offset from local cache.", changeKey);
       }
       return offset;
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug("Checking kafka for offset {}", changeKey);
+    if (log.isTraceEnabled()) {
+      log.trace("{}: Checking kafka for offset.", changeKey);
     }
 
     Map<String, Object> sourcePartition = Change.sourcePartition(changeKey);
     offset = this.offsetStorageReader.offset(sourcePartition);
 
     if (null != offset && !offset.isEmpty()) {
-      if (log.isDebugEnabled()) {
-        log.debug("Retrieved offset from offsetStorageReader for {}.", changeKey);
+      if (log.isTraceEnabled()) {
+        log.trace("{}: Retrieved offset from offsetStorageReader.", changeKey);
       }
       return offset;
     }
 
-    if (log.isDebugEnabled()) {
-      log.debug("Querying database for offset of {}", changeKey);
+    if (log.isTraceEnabled()) {
+      log.trace("{}: Querying database for offset.", changeKey);
     }
 
     try (Connection connection = openConnection()) {
@@ -215,8 +231,8 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
                 !resultSet.wasNull(),
                 "resultSet did not returned a null for min_valid_version of %s", changeKey
             );
-            if (log.isDebugEnabled()) {
-              log.debug("Found min_valid_version of {} for ", min_valid_version, changeKey);
+            if (log.isTraceEnabled()) {
+              log.trace("{}: Found min_valid_version of {}.", changeKey, min_valid_version);
             }
 
             offset = MsSqlChange.offset(min_valid_version);
