@@ -6,7 +6,7 @@ node {
 
     configFileProvider([configFile(fileId: 'mavenSettings', variable: 'maven_settings')]) {
         docker.image('maven:3.3.3-jdk-8').inside {
-          sh "mvn -B -s ${maven_settings} clean package"
+          sh "mvn -X -B -s ${maven_settings} clean package"
         }
     }
 }
