@@ -10,8 +10,7 @@
     "tableName" : "numeric_table"
   },
   "sourceOffset" : {
-    "sys_change_version" : 6,
-    "complete" : true
+    "sys_change_version" : 6
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",

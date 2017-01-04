@@ -10,8 +10,7 @@
     "tableName" : "image_table"
   },
   "sourceOffset" : {
-    "sys_change_version" : 1,
-    "complete" : true
+    "sys_change_version" : 1
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",

@@ -93,8 +93,8 @@ class QueryService extends AbstractExecutionThreadService {
 
   void queryTable(ChangeWriter changeWriter, ChangeKey changeKey) throws SQLException {
     try (Connection connection = JdbcUtils.openConnection(this.config)) {
-      if (log.isDebugEnabled()) {
-        log.debug("Setting transaction level to 4096 (READ_COMMITTED_SNAPSHOT)");
+      if (log.isTraceEnabled()) {
+        log.trace("{}: Setting transaction level to 4096 (READ_COMMITTED_SNAPSHOT)", changeKey);
       }
       connection.setTransactionIsolation(4096);
       connection.setAutoCommit(false);
@@ -106,8 +106,8 @@ class QueryService extends AbstractExecutionThreadService {
       Map<String, Object> startOffset = this.tableMetadataProvider.startOffset(changeKey);
       long offset = MsSqlChange.offset(startOffset);
 
-      if (log.isDebugEnabled()) {
-        log.debug("Starting at offset {} for ", offset, changeKey);
+      if (log.isTraceEnabled()) {
+        log.trace("{}: Starting at offset {} ", changeKey, offset);
       }
 
       try (PreparedStatement statement = queryBuilder.changeTrackingStatement(tableMetadata)) {
@@ -121,8 +121,8 @@ class QueryService extends AbstractExecutionThreadService {
           while (resultSet.next()) {
             changeVersion = resultSet.getLong("__metadata_sys_change_version");
 
-            if(log.isDebugEnabled()) {
-              log.debug("__metadata_sys_change_version = {} for {}", changeVersion, changeKey);
+            if (log.isTraceEnabled()) {
+              log.trace("{}: __metadata_sys_change_version = {}", changeKey, changeVersion);
             }
 
             MsSqlChange.Builder builder = MsSqlChange.builder();
@@ -136,12 +136,12 @@ class QueryService extends AbstractExecutionThreadService {
         }
 
         if (log.isInfoEnabled()) {
-          log.info("Processed {} record(s) for [{}].", count, changeKey);
+          log.info("{}: Processed {} record(s) for [{}].", changeKey, count);
         }
 
       } finally {
-        if(log.isDebugEnabled()) {
-          log.debug("calling connection.commit()");
+        if (log.isTraceEnabled()) {
+          log.trace("{}: calling connection.commit()", changeKey);
         }
         connection.commit();
       }

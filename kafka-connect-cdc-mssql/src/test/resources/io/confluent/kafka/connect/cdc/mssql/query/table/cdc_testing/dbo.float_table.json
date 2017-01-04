@@ -10,8 +10,7 @@
     "tableName" : "float_table"
   },
   "sourceOffset" : {
-    "sys_change_version" : 2,
-    "complete" : true
+    "sys_change_version" : 2
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",

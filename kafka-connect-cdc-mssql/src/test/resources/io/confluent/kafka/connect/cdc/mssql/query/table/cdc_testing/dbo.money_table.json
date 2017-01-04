@@ -10,8 +10,7 @@
     "tableName" : "money_table"
   },
   "sourceOffset" : {
-    "sys_change_version" : 5,
-    "complete" : true
+    "sys_change_version" : 5
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",

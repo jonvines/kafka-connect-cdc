@@ -15,6 +15,7 @@ import java.io.OutputStream;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MsSqlTableMetadataProviderTestData implements NamedTest {
+  String databaseName;
   String schemaName;
   String tableName;
   JsonTableMetadata expected;
@@ -41,6 +42,14 @@ public class MsSqlTableMetadataProviderTestData implements NamedTest {
   @Override
   public void name(String value) {
 
+  }
+
+  public String databaseName() {
+    return this.databaseName;
+  }
+
+  public void databaseName(String databaseName) {
+    this.databaseName = databaseName;
   }
 
   public String schemaName() {

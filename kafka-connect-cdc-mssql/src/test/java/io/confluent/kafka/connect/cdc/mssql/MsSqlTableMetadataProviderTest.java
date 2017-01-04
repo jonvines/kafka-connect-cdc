@@ -28,7 +28,7 @@ import static org.mockito.Mockito.mock;
 
 @Category(Integration.class)
 @DockerCompose(dockerComposePath = MsSqlTestConstants.DOCKER_COMPOSE_FILE, clusterHealthCheck = MsSqlClusterHealthCheck.class)
-public class MsSqlTableMetadataProviderTests extends MsSqlTests {
+public class MsSqlTableMetadataProviderTest extends MsSqlTest {
   MsSqlSourceConnectorConfig config;
   TableMetadataProvider tableMetadataProvider;
   OffsetStorageReader offsetStorageReader;

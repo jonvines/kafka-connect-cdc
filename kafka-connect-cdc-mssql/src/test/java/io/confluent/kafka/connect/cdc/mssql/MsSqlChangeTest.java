@@ -18,7 +18,7 @@ import java.util.Map;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MsSqlChangeTests {
+public class MsSqlChangeTest {
 
   @Test
   public void insert() throws SQLException {

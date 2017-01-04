@@ -13,8 +13,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class MsSqlTests {
-  private static final Logger log = LoggerFactory.getLogger(MsSqlTests.class);
+public class MsSqlTest {
+  private static final Logger log = LoggerFactory.getLogger(MsSqlTest.class);
 
   @BeforeAll
   public static void beforeClass(

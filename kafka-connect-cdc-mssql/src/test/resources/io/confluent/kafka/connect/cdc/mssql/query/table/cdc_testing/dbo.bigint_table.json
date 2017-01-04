@@ -10,8 +10,7 @@
     "tableName" : "bigint_table"
   },
   "sourceOffset" : {
-    "sys_change_version" : 4,
-    "complete" : true
+    "sys_change_version" : 4
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",

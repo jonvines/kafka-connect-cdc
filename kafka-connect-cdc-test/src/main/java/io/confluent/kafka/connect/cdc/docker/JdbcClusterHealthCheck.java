@@ -31,18 +31,14 @@ public class JdbcClusterHealthCheck implements ClusterHealthCheck {
 
   @Override
   public SuccessOrFailure isClusterHealthy(Cluster cluster) {
-    final Container container = cluster.container(this.containerName);
-    final DockerPort dockerPort = container.port(this.port);
-    final String jdbcUrl = dockerPort.inFormat(this.jdbcUrlFormat);
-
-    if (log.isInfoEnabled()) {
-      log.info("Attempting to authenticate to {} with user {}.", jdbcUrl, this.username);
-    }
-
     return SuccessOrFailure.onResultOf(
         new Attempt() {
           @Override
           public boolean attempt() throws Exception {
+            final Container container = cluster.container(containerName);
+            final DockerPort dockerPort = container.port(port);
+            final String jdbcUrl = dockerPort.inFormat(jdbcUrlFormat);
+
             if (!dockerPort.isListeningNow()) {
               if (log.isTraceEnabled()) {
                 log.trace("Port {} is not listening on container {}.", port, containerName);
@@ -50,6 +46,9 @@ public class JdbcClusterHealthCheck implements ClusterHealthCheck {
               return false;
             }
 
+            if (log.isTraceEnabled()) {
+              log.trace("Attempting to authenticate to {} with user {}.", jdbcUrl, username);
+            }
             try (Connection connection = DriverManager.getConnection(
                 jdbcUrl,
                 username,

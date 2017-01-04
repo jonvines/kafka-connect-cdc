@@ -41,8 +41,8 @@ import static org.mockito.Mockito.*;
 
 @Category(Integration.class)
 @DockerCompose(dockerComposePath = MsSqlTestConstants.DOCKER_COMPOSE_FILE, clusterHealthCheck = MsSqlClusterHealthCheck.class)
-public class QueryServiceTests extends MsSqlTests {
-  private static final Logger log = LoggerFactory.getLogger(QueryServiceTests.class);
+public class QueryServiceTest extends MsSqlTest {
+  private static final Logger log = LoggerFactory.getLogger(QueryServiceTest.class);
 
 
   MsSqlSourceConnectorConfig config;
