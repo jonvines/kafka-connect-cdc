@@ -4,7 +4,9 @@ node {
 
     checkout scm
 
-    docker.image('maven:3.3.3-jdk-8').inside {
-      sh 'mvn -B clean package'
+    configFileProvider([configFile(fileId: 'mavenSettings', variable: 'maven_settings')]) {
+        docker.image('maven:3.3.3-jdk-8').inside {
+          sh "mvn -B -s ${maven_settings} clean package"
+        }
     }
 }
