@@ -1,9 +1,10 @@
 package io.confluent.kafka.connect.cdc.docker;
 
+import com.palantir.docker.compose.connection.Cluster;
 import com.palantir.docker.compose.connection.Container;
 import com.palantir.docker.compose.connection.DockerPort;
 import com.palantir.docker.compose.connection.waiting.Attempt;
-import com.palantir.docker.compose.connection.waiting.HealthCheck;
+import com.palantir.docker.compose.connection.waiting.ClusterHealthCheck;
 import com.palantir.docker.compose.connection.waiting.SuccessOrFailure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,24 +12,28 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-public class JdbcHealthCheck implements HealthCheck<Container> {
-  private static final Logger log = LoggerFactory.getLogger(JdbcHealthCheck.class);
+public class JdbcClusterHealthCheck implements ClusterHealthCheck {
+  private static final Logger log = LoggerFactory.getLogger(JdbcClusterHealthCheck.class);
+
+  final String containerName;
+  final int port;
+  final String jdbcUrlFormat;
   final String username;
   final String password;
-  final String jdbcUrlFormat;
-  final int internalPort;
 
-  public JdbcHealthCheck(String username, String password, int internalPort, String jdbcUrlFormat) {
+  public JdbcClusterHealthCheck(String containerName, int port, String jdbcUrlFormat, String username, String password) {
+    this.containerName = containerName;
+    this.port = port;
+    this.jdbcUrlFormat = jdbcUrlFormat;
     this.username = username;
     this.password = password;
-    this.jdbcUrlFormat = jdbcUrlFormat;
-    this.internalPort = internalPort;
   }
 
   @Override
-  public SuccessOrFailure isHealthy(Container container) {
-    final DockerPort port = container.port(this.internalPort);
-    final String jdbcUrl = port.inFormat(this.jdbcUrlFormat);
+  public SuccessOrFailure isClusterHealthy(Cluster cluster) {
+    final Container container = cluster.container(this.containerName);
+    final DockerPort dockerPort = container.port(this.port);
+    final String jdbcUrl = dockerPort.inFormat(this.jdbcUrlFormat);
 
     if (log.isInfoEnabled()) {
       log.info("Attempting to authenticate to {} with user {}.", jdbcUrl, this.username);
@@ -38,6 +43,13 @@ public class JdbcHealthCheck implements HealthCheck<Container> {
         new Attempt() {
           @Override
           public boolean attempt() throws Exception {
+            if (!dockerPort.isListeningNow()) {
+              if (log.isTraceEnabled()) {
+                log.trace("Port {} is not listening on container {}.", port, containerName);
+              }
+              return false;
+            }
+
             try (Connection connection = DriverManager.getConnection(
                 jdbcUrl,
                 username,

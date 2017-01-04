@@ -15,7 +15,7 @@ public class SchemaSerializerTest {
         .optional()
         .doc("This is for testing")
         .build();
-    byte[] buffer=ObjectMapperFactory.instance.writeValueAsBytes(expected);
+    byte[] buffer = ObjectMapperFactory.instance.writeValueAsBytes(expected);
     final Schema actual = ObjectMapperFactory.instance.readValue(buffer, Schema.class);
     assertSchema(expected, actual);
   }

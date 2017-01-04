@@ -4,10 +4,12 @@ import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.ChangeKey;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import io.confluent.kafka.connect.cdc.TestDataUtils;
+import io.confluent.kafka.connect.cdc.docker.DockerCompose;
+import io.confluent.kafka.connect.cdc.docker.DockerFormatString;
+import io.confluent.kafka.connect.cdc.mssql.docker.MsSqlClusterHealthCheck;
 import io.confluent.kafka.connect.cdc.mssql.model.MsSqlTableMetadataProviderTestData;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
@@ -22,18 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.mock;
 
-@Disabled
+@DockerCompose(dockerComposePath = MsSqlTestConstants.DOCKER_COMPOSE_FILE, clusterHealthCheck = MsSqlClusterHealthCheck.class)
 public class MsSqlTableMetadataProviderTest extends DockerTest {
   MsSqlSourceConnectorConfig config;
   TableMetadataProvider tableMetadataProvider;
   OffsetStorageReader offsetStorageReader;
 
   @BeforeEach
-  public void before() {
+  public void before(@DockerFormatString(container = MsSqlTestConstants.CONTAINER_NAME, port = MsSqlTestConstants.PORT, format = MsSqlTestConstants.JDBCURL_FORMAT_CDC_TESTING) String jdbcUrl) {
     Map<String, String> settings = ImmutableMap.of(
-        MsSqlSourceConnectorConfig.JDBC_URL_CONF, jdbcUrl(DATABASE_NAME),
-        MsSqlSourceConnectorConfig.JDBC_USERNAME_CONF, USERNAME,
-        MsSqlSourceConnectorConfig.JDBC_PASSWORD_CONF, PASSWORD
+        MsSqlSourceConnectorConfig.JDBC_URL_CONF, jdbcUrl,
+        MsSqlSourceConnectorConfig.JDBC_USERNAME_CONF, MsSqlTestConstants.USERNAME,
+        MsSqlSourceConnectorConfig.JDBC_PASSWORD_CONF, MsSqlTestConstants.PASSWORD
     );
     this.config = new MsSqlSourceConnectorConfig(settings);
     this.offsetStorageReader = mock(OffsetStorageReader.class);

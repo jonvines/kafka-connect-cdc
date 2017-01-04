@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import oracle.sql.Datum;
 import org.apache.kafka.connect.data.Schema;
 
 public class ObjectMapperFactory {
@@ -24,12 +23,6 @@ public class ObjectMapperFactory {
     schemaModule.addSerializer(Schema.class, new JsonConnectSchema.SchemaSerializer());
     schemaModule.addDeserializer(Schema.class, new SchemaDeserializer());
     instance.registerModule(schemaModule);
-
-    SimpleModule datumModule = new SimpleModule();
-    datumModule.addDeserializer(Datum.class, new JsonDatum.DatumDeserializer());
-    datumModule.addSerializer(Datum.class, new JsonDatum.DatumSerializer());
-    instance.registerModule(datumModule);
-
   }
 
 

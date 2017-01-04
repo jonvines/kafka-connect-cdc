@@ -1,4 +1,4 @@
-package io.confluent.kafka.connect.cdc;
+package io.confluent.kafka.connect.cdc.xstream.model;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;

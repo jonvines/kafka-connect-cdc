@@ -8,6 +8,9 @@ import io.confluent.kafka.connect.cdc.ChangeWriter;
 import io.confluent.kafka.connect.cdc.JdbcUtils;
 import io.confluent.kafka.connect.cdc.JsonChangeList;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
+import io.confluent.kafka.connect.cdc.docker.DockerCompose;
+import io.confluent.kafka.connect.cdc.docker.DockerFormatString;
+import io.confluent.kafka.connect.cdc.mssql.docker.MsSqlClusterHealthCheck;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +38,7 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-@Disabled
+@DockerCompose(dockerComposePath = MsSqlTestConstants.DOCKER_COMPOSE_FILE, clusterHealthCheck = MsSqlClusterHealthCheck.class)
 public class QueryServiceTest extends DockerTest {
   private static final Logger log = LoggerFactory.getLogger(QueryServiceTest.class);
 
@@ -43,11 +46,11 @@ public class QueryServiceTest extends DockerTest {
   MsSqlSourceConnectorConfig config;
 
   @BeforeEach
-  public void before() {
+  public void before(@DockerFormatString(container = MsSqlTestConstants.CONTAINER_NAME, port = MsSqlTestConstants.PORT, format = MsSqlTestConstants.JDBCURL_FORMAT_CDC_TESTING) String jdbcUrl) {
     Map<String, String> settings = ImmutableMap.of(
-        MsSqlSourceConnectorConfig.JDBC_URL_CONF, jdbcUrl(DATABASE_NAME),
-        MsSqlSourceConnectorConfig.JDBC_USERNAME_CONF, USERNAME,
-        MsSqlSourceConnectorConfig.JDBC_PASSWORD_CONF, PASSWORD
+        MsSqlSourceConnectorConfig.JDBC_URL_CONF, jdbcUrl,
+        MsSqlSourceConnectorConfig.JDBC_USERNAME_CONF, MsSqlTestConstants.USERNAME,
+        MsSqlSourceConnectorConfig.JDBC_PASSWORD_CONF, MsSqlTestConstants.PASSWORD
     );
     config = new MsSqlSourceConnectorConfig(settings);
   }

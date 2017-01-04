@@ -34,6 +34,30 @@ public class JsonTableMetadata implements TableMetadataProvider.TableMetadata, N
     this.columnSchemas = columnSchemas;
   }
 
+  public static JsonTableMetadata of(TableMetadataProvider.TableMetadata tableMetadata) {
+    JsonTableMetadata jsonTableMetadata = new JsonTableMetadata();
+    jsonTableMetadata.databaseName = tableMetadata.databaseName();
+    jsonTableMetadata.schemaName = tableMetadata.schemaName();
+    jsonTableMetadata.tableName = tableMetadata.tableName();
+    jsonTableMetadata.columnSchemas = tableMetadata.columnSchemas();
+    jsonTableMetadata.keyColumns = tableMetadata.keyColumns();
+    return jsonTableMetadata;
+  }
+
+  public static void write(File file, JsonTableMetadata change) throws IOException {
+    try (OutputStream outputStream = new FileOutputStream(file)) {
+      ObjectMapperFactory.instance.writeValue(outputStream, change);
+    }
+  }
+
+  public static void write(OutputStream outputStream, JsonTableMetadata change) throws IOException {
+    ObjectMapperFactory.instance.writeValue(outputStream, change);
+  }
+
+  public static JsonTableMetadata read(InputStream inputStream) throws IOException {
+    return ObjectMapperFactory.instance.readValue(inputStream, JsonTableMetadata.class);
+  }
+
   @Override
   public String databaseName() {
     return this.databaseName;
@@ -77,30 +101,6 @@ public class JsonTableMetadata implements TableMetadataProvider.TableMetadata, N
 
   public void keyColumns(Map<String, Schema> value) {
     this.columnSchemas = value;
-  }
-
-  public static JsonTableMetadata of(TableMetadataProvider.TableMetadata tableMetadata) {
-    JsonTableMetadata jsonTableMetadata = new JsonTableMetadata();
-    jsonTableMetadata.databaseName = tableMetadata.databaseName();
-    jsonTableMetadata.schemaName = tableMetadata.schemaName();
-    jsonTableMetadata.tableName = tableMetadata.tableName();
-    jsonTableMetadata.columnSchemas = tableMetadata.columnSchemas();
-    jsonTableMetadata.keyColumns = tableMetadata.keyColumns();
-    return jsonTableMetadata;
-  }
-
-  public static void write(File file, JsonTableMetadata change) throws IOException {
-    try (OutputStream outputStream = new FileOutputStream(file)) {
-      ObjectMapperFactory.instance.writeValue(outputStream, change);
-    }
-  }
-
-  public static void write(OutputStream outputStream, JsonTableMetadata change) throws IOException {
-    ObjectMapperFactory.instance.writeValue(outputStream, change);
-  }
-
-  public static JsonTableMetadata read(InputStream inputStream) throws IOException {
-    return ObjectMapperFactory.instance.readValue(inputStream, JsonTableMetadata.class);
   }
 
   @Override

@@ -9,6 +9,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DockerFormatString {
   String container();
+
   int port();
+
   String format();
 }

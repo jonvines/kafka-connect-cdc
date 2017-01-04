@@ -2,7 +2,6 @@ package io.confluent.kafka.connect.cdc.docker;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.palantir.docker.compose.DockerComposeRule;
 import com.palantir.docker.compose.connection.Container;
 import com.palantir.docker.compose.connection.DockerPort;
@@ -20,11 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.util.Map;
 
 class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterResolver {
   static final Logger log = LoggerFactory.getLogger(DockerExtension.class);
+  static final String STORE_SLOT_RULE = "rule";
 
   DockerCompose findDockerComposeAnnotation(ExtensionContext extensionContext) {
     Class<?> testClass = extensionContext.getTestClass().get();
@@ -48,8 +46,6 @@ class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterR
     }
     return namespace;
   }
-
-  static final String STORE_SLOT_RULE = "rule";
 
   @Override
   public void beforeAll(ContainerExtensionContext containerExtensionContext) throws Exception {
@@ -91,8 +87,8 @@ class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterR
   @Override
   public boolean supports(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
     return
-        parameterContext.getParameter().isAnnotationPresent(DockerFormatString.class)||
-        parameterContext.getParameter().isAnnotationPresent(DockerContainer.class)
+        parameterContext.getParameter().isAnnotationPresent(DockerFormatString.class) ||
+            parameterContext.getParameter().isAnnotationPresent(DockerContainer.class)
         ;
   }
 
@@ -109,7 +105,7 @@ class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterR
       Container container = docker.containers().container(dockerFormatString.container());
       DockerPort dockerPort = container.port(dockerFormatString.port());
       result = dockerPort.inFormat(dockerFormatString.format());
-    } else if(null != dockerContainer) {
+    } else if (null != dockerContainer) {
       Container container = docker.containers().container(dockerContainer.container());
       result = container;
     }

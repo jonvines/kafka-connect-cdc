@@ -1,5 +1,6 @@
-package io.confluent.kafka.connect.cdc;
+package io.confluent.kafka.connect.cdc.xstream.model;
 
+import io.confluent.kafka.connect.cdc.ObjectMapperFactory;
 import oracle.sql.BINARY_DOUBLE;
 import oracle.sql.BINARY_FLOAT;
 import oracle.sql.CHAR;
