@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.ChangeKey;
 import io.confluent.kafka.connect.cdc.ChangeWriter;
+import io.confluent.kafka.connect.cdc.Integration;
 import io.confluent.kafka.connect.cdc.JdbcUtils;
 import io.confluent.kafka.connect.cdc.JsonChangeList;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
@@ -13,8 +14,8 @@ import io.confluent.kafka.connect.cdc.docker.DockerFormatString;
 import io.confluent.kafka.connect.cdc.mssql.docker.MsSqlClusterHealthCheck;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
+import org.junit.experimental.categories.Category;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.slf4j.Logger;
@@ -38,9 +39,10 @@ import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+@Category(Integration.class)
 @DockerCompose(dockerComposePath = MsSqlTestConstants.DOCKER_COMPOSE_FILE, clusterHealthCheck = MsSqlClusterHealthCheck.class)
-public class QueryServiceTest extends DockerTest {
-  private static final Logger log = LoggerFactory.getLogger(QueryServiceTest.class);
+public class QueryServiceTests extends MsSqlTests {
+  private static final Logger log = LoggerFactory.getLogger(QueryServiceTests.class);
 
 
   MsSqlSourceConnectorConfig config;

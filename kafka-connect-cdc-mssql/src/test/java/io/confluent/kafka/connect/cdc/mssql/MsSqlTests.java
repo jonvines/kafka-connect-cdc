@@ -13,8 +13,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class DockerTest {
-  private static final Logger log = LoggerFactory.getLogger(DockerTest.class);
+public class MsSqlTests {
+  private static final Logger log = LoggerFactory.getLogger(MsSqlTests.class);
 
   @BeforeAll
   public static void beforeClass(

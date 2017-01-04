@@ -2,6 +2,7 @@ package io.confluent.kafka.connect.cdc.mssql;
 
 import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.ChangeKey;
+import io.confluent.kafka.connect.cdc.Integration;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import io.confluent.kafka.connect.cdc.TestDataUtils;
 import io.confluent.kafka.connect.cdc.docker.DockerCompose;
@@ -9,6 +10,7 @@ import io.confluent.kafka.connect.cdc.docker.DockerFormatString;
 import io.confluent.kafka.connect.cdc.mssql.docker.MsSqlClusterHealthCheck;
 import io.confluent.kafka.connect.cdc.mssql.model.MsSqlTableMetadataProviderTestData;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
+import org.junit.experimental.categories.Category;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -24,8 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.mock;
 
+@Category(Integration.class)
 @DockerCompose(dockerComposePath = MsSqlTestConstants.DOCKER_COMPOSE_FILE, clusterHealthCheck = MsSqlClusterHealthCheck.class)
-public class MsSqlTableMetadataProviderTest extends DockerTest {
+public class MsSqlTableMetadataProviderTests extends MsSqlTests {
   MsSqlSourceConnectorConfig config;
   TableMetadataProvider tableMetadataProvider;
   OffsetStorageReader offsetStorageReader;
