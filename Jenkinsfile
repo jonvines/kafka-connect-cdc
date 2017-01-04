@@ -4,5 +4,7 @@ node {
 
     checkout scm
 
-    sh "${mvnHome}/bin/mvn -B clean verify package"
+    docker.image('maven:3.3.3-jdk-8').inside {
+      sh 'mvn -B clean package'
+    }
 }
