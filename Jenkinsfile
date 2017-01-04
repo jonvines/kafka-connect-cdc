@@ -1,4 +1,4 @@
-@Library('pipeline-library')
+@Library('pipeline-library') _
 
 node {
     def maven_build_number = "0.0.1.${env.BUILD_NUMBER}"
@@ -12,7 +12,7 @@ node {
         file(credentialsId: 'gpg_secring', variable: 'gpg_secring')]
     ) {
         configFileProvider([configFile(fileId: 'mavenSettings', variable: 'maven_settings')]) {
-            docker.image(jdk8_docker_image).inside {
+            docker.image(docker_images.jdk8).inside {
                 sh "mvn -B -s ${maven_settings} -Dgpg.keyname=${gpg_key} -Dgpg.passphraseServerId=${gpg_key} -Dgpg.publicKeyring=${gpg_pubring} -Dgpg.secretKeyring=${gpg_secring} clean package"
             }
         }
