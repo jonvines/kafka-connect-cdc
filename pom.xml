@@ -36,7 +36,7 @@
         <dependency>
             <groupId>io.confluent.kafka</groupId>
             <artifactId>connect-utils</artifactId>
-            <version>0.1.20</version>
+            <version>[0.1.20,0.1.100)</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
