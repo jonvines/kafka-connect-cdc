@@ -13,7 +13,7 @@ node {
     ) {
         configFileProvider([configFile(fileId: 'mavenSettings', variable: 'maven_settings')]) {
             docker.image(docker_images.jdk8).inside {
-                sh "mvn -B -s ${maven_settings} -Dgpg.keyname=${gpg_key} -Dgpg.passphraseServerId=${gpg_key} -Dgpg.publicKeyring=${gpg_pubring} -Dgpg.secretKeyring=${gpg_secring} clean package"
+                sh "mvn -B -U -s ${maven_settings} -Dgpg.keyname=${gpg_key} -Dgpg.passphraseServerId=${gpg_key} -Dgpg.publicKeyring=${gpg_pubring} -Dgpg.secretKeyring=${gpg_secring} clean package"
             }
         }
     }
