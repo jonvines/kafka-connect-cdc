@@ -11,8 +11,18 @@ all of the changes might not be found. The latest version of the change will be 
 Microsoft does not deploy a jar of their JDBC driver to Maven Central. Due to this you will have to download the driver 
 manually and install it in your local maven repository. You can download the JDBC Driver from [here](https://msdn.microsoft.com/en-us/library/mt683464(v=sql.110).aspx).
 
+## Local maven installation
+
 ```
 mvn install:install-file -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc4 -Dversion=6.0.7130 -Dpackaging=jar -Dfile=<path to the download>
+```
+
+## Upload artifacts to Nexus
+
+```
+export NEXUS_URL='http://nexus-01:8081/repository/maven-releases/'
+export NEXUS_REPO_ID='ldap-jeremy'
+mvn deploy:deploy-file -DrepositoryId=$NEXUS_REPO_ID -Durl=$NEXUS_URL -DgeneratePom=true -Dpackaging=jar -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc4 -Dversion=6.0.7130 -Dfile=sqljdbc4-6.0.7130.jar
 ```
 
 
