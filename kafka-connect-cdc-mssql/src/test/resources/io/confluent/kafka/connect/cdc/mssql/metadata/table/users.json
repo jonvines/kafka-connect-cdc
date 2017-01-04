@@ -3,6 +3,7 @@
   "schemaName" : "dbo",
   "tableName" : "users",
   "expected" : {
+    "databaseName": "cdc_testing",
     "schemaName" : "dbo",
     "tableName" : "users",
     "keyColumns" : [ "user_id" ],

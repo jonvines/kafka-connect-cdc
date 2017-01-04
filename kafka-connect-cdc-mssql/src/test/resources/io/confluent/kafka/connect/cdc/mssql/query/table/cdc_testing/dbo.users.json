@@ -170,8 +170,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -331,8 +330,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -492,8 +490,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -653,8 +650,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -814,8 +810,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -975,8 +970,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -1136,8 +1130,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -1297,8 +1290,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -1458,8 +1450,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -1619,8 +1610,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
@@ -1780,8 +1770,7 @@
     "tableName" : "users"
   },
   "sourceOffset" : {
-    "sys_change_version" : 8,
-    "complete" : false
+    "sys_change_version" : 8
   },
   "databaseName" : "cdc_testing",
   "schemaName" : "dbo",
