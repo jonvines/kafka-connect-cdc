@@ -1,5 +1,6 @@
+@Library('pipeline-library')
+
 node {
-    def jdk8_docker_image = 'maven:3.3.3-jdk-8'
     def maven_build_number = "0.0.1.${env.BUILD_NUMBER}"
 
     checkout scm
