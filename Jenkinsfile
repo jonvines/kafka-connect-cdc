@@ -5,8 +5,8 @@ node {
     checkout scm
 
     configFileProvider([configFile(fileId: 'mavenSettings', variable: 'maven_settings')]) {
-        docker.image('maven:3.3.3-jdk-8').inside('--add-host nexus.custenborder.com:10.10.0.22') {
-          sh "mvn -X -B -s ${maven_settings} clean package"
+        docker.image('maven:3.3.3-jdk-8').inside {
+          sh "mvn -B -s ${maven_settings} clean package"
         }
     }
 }
