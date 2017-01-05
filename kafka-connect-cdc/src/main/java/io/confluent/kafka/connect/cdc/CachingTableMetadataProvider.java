@@ -5,7 +5,6 @@ import com.google.common.cache.CacheBuilder;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,10 +12,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public abstract class CachingTableMetadataProvider<T extends JdbcCDCSourceConnectorConfig> implements TableMetadataProvider {
+public abstract class CachingTableMetadataProvider<T extends PooledCDCSourceConnectorConfig> implements TableMetadataProvider {
   protected final T config;
   protected final OffsetStorageReader offsetStorageReader;
   final Cache<ChangeKey, TableMetadata> tableMetadataCache;
+  protected Map<ChangeKey, Map<String, Object>> cachedOffsets = new HashMap<>();
 
   public CachingTableMetadataProvider(T config, OffsetStorageReader offsetStorageReader) {
     this.config = config;
@@ -26,12 +26,6 @@ public abstract class CachingTableMetadataProvider<T extends JdbcCDCSourceConnec
         .build();
     this.offsetStorageReader = offsetStorageReader;
   }
-
-  protected Connection openConnection() throws SQLException {
-    return JdbcUtils.openConnection(this.config);
-  }
-
-  protected Map<ChangeKey, Map<String, Object>> cachedOffsets = new HashMap<>();
 
   @Override
   public void cacheOffset(ChangeKey changeKey, Map<String, Object> offset) {

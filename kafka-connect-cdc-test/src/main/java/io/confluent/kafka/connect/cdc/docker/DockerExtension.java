@@ -19,12 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 
-class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterResolver {
-  static final Logger log = LoggerFactory.getLogger(DockerExtension.class);
-  static final String STORE_SLOT_RULE = "rule";
+public class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterResolver {
+  public static final String STORE_SLOT_RULE = "rule";
+  private static final Logger log = LoggerFactory.getLogger(DockerExtension.class);
 
-  DockerCompose findDockerComposeAnnotation(ExtensionContext extensionContext) {
+  public static DockerCompose findDockerComposeAnnotation(ExtensionContext extensionContext) {
     Class<?> testClass = extensionContext.getTestClass().get();
 
     if (log.isTraceEnabled()) {
@@ -38,7 +39,7 @@ class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterR
     return dockerCompose;
   }
 
-  ExtensionContext.Namespace namespace(ExtensionContext extensionContext) {
+  public static ExtensionContext.Namespace namespace(ExtensionContext extensionContext) {
     Class<?> testClass = extensionContext.getTestClass().get();
     ExtensionContext.Namespace namespace = ExtensionContext.Namespace.create(testClass.getName(), "docker", "compose");
     if (log.isTraceEnabled()) {
@@ -78,9 +79,8 @@ class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterR
   @Override
   public void afterAll(ContainerExtensionContext containerExtensionContext) throws Exception {
     ExtensionContext.Namespace namespace = namespace(containerExtensionContext);
-    DockerCompose dockerCompose = findDockerComposeAnnotation(containerExtensionContext);
     ExtensionContext.Store store = containerExtensionContext.getStore(namespace);
-    DockerComposeRule dockerComposeRule = store.get("rule", DockerComposeRule.class);
+    DockerComposeRule dockerComposeRule = store.get(STORE_SLOT_RULE, DockerComposeRule.class);
     dockerComposeRule.after();
   }
 
@@ -88,7 +88,9 @@ class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterR
   public boolean supports(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
     return
         parameterContext.getParameter().isAnnotationPresent(DockerFormatString.class) ||
-            parameterContext.getParameter().isAnnotationPresent(DockerContainer.class)
+            parameterContext.getParameter().isAnnotationPresent(DockerContainer.class) ||
+            parameterContext.getParameter().isAnnotationPresent(io.confluent.kafka.connect.cdc.docker.DockerPort.class) ||
+            parameterContext.getParameter().isAnnotationPresent(io.confluent.kafka.connect.cdc.docker.DockerHost.class)
         ;
   }
 
@@ -99,17 +101,54 @@ class DockerExtension implements BeforeAllCallback, AfterAllCallback, ParameterR
     Object result = null;
     DockerComposeRule docker = store.get(STORE_SLOT_RULE, DockerComposeRule.class);
 
-    DockerFormatString dockerFormatString = parameterContext.getParameter().getAnnotation(DockerFormatString.class);
-    DockerContainer dockerContainer = parameterContext.getParameter().getAnnotation(DockerContainer.class);
-    if (null != dockerFormatString) {
-      Container container = docker.containers().container(dockerFormatString.container());
-      DockerPort dockerPort = container.port(dockerFormatString.port());
-      result = dockerPort.inFormat(dockerFormatString.format());
-    } else if (null != dockerContainer) {
-      Container container = docker.containers().container(dockerContainer.container());
-      result = container;
+    Annotation[] annotations = parameterContext.getParameter().getAnnotations();
+
+    if (log.isTraceEnabled()) {
+      log.trace("Found {} annotations for {}", annotations.length, parameterContext.getParameter().getName());
     }
 
+    for (Annotation annotation : annotations) {
+      if (annotation instanceof DockerFormatString) {
+        result = dockerFormatString(docker, annotation);
+        break;
+      } else if (annotation instanceof DockerContainer) {
+        result = dockerContainer(docker, annotation);
+        break;
+      } else if (annotation instanceof io.confluent.kafka.connect.cdc.docker.DockerPort) {
+        result = dockerPort(docker, annotation);
+        break;
+      } else if (annotation instanceof DockerHost) {
+        result = dockerHost(docker, annotation);
+        break;
+      }
+    }
     return result;
+  }
+
+  private Object dockerHost(DockerComposeRule docker, Annotation annotation) {
+    DockerHost dockerHost = (DockerHost) annotation;
+    Container container = docker.containers().container(dockerHost.container());
+    DockerPort dockerPort = container.port(dockerHost.port());
+    return dockerPort.getIp();
+  }
+
+  private Object dockerPort(DockerComposeRule docker, Annotation annotation) {
+    io.confluent.kafka.connect.cdc.docker.DockerPort dockerFormatString = (io.confluent.kafka.connect.cdc.docker.DockerPort) annotation;
+    Container container = docker.containers().container(dockerFormatString.container());
+    DockerPort dockerPort = container.port(dockerFormatString.port());
+    return dockerPort.getExternalPort();
+  }
+
+  private Object dockerContainer(DockerComposeRule docker, Annotation annotation) {
+    DockerContainer dockerContainer = (DockerContainer) annotation;
+    Container container = docker.containers().container(dockerContainer.container());
+    return container;
+  }
+
+  private Object dockerFormatString(DockerComposeRule docker, Annotation annotation) {
+    DockerFormatString dockerFormatString = (DockerFormatString) annotation;
+    Container container = docker.containers().container(dockerFormatString.container());
+    DockerPort dockerPort = container.port(dockerFormatString.port());
+    return dockerPort.inFormat(dockerFormatString.format());
   }
 }

@@ -16,7 +16,7 @@ class Assertions {
     String prefix = Strings.isNullOrEmpty(message) ? "" : message + ": ";
     assertNotNull(expected, prefix + "expected field should not be null.");
     assertNotNull(actual, prefix + "actual field should not be null.");
-    assertSchema(expected.schema(), actual.schema(), "schema for field " +  expected.name() + " does not match.");
+    assertSchema(expected.schema(), actual.schema(), "schema for field " + expected.name() + " does not match.");
   }
 
   public static void assertSchema(final Schema expected, final Schema actual, String message) {
@@ -41,7 +41,7 @@ class Assertions {
         break;
       case STRUCT:
         assertEquals(expected.fields().size(), actual.fields().size(), message + "fields().size() does not match.");
-        for(Field expectedField:expected.fields()) {
+        for (Field expectedField : expected.fields()) {
           Field actualField = actual.field(expectedField.name());
           assertField(expectedField, actualField, "field(" + expectedField.name() + ") does not match.");
         }

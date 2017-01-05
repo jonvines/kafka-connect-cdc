@@ -28,14 +28,15 @@ public class ChangeKey implements Comparable<ChangeKey> {
   public int compareTo(ChangeKey that) {
     return ComparisonChain.start()
         .compare(this.databaseName, that.databaseName, Ordering.natural().nullsLast())
-        .compare(this.schemaName, that.schemaName)
-        .compare(this.tableName, that.tableName)
+        .compare(this.schemaName, that.schemaName, Ordering.natural().nullsLast())
+        .compare(this.tableName, that.tableName, Ordering.natural().nullsLast())
         .result();
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(ChangeKey.class)
+        .omitNullValues()
         .add("databaseName", this.databaseName)
         .add("schemaName", this.schemaName)
         .add("tableName", this.tableName)

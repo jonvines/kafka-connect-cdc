@@ -234,7 +234,6 @@ class SchemaGenerator {
     );
 
 
-
     return builder.build();
   }
 
@@ -293,7 +292,6 @@ class SchemaGenerator {
       throw new DataException("Exception thrown while building schemas.", e);
     }
   }
-
 
 
 }

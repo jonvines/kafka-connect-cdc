@@ -3,7 +3,6 @@ package io.confluent.kafka.connect.cdc;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 
 public class CDCSourceTaskTest {

@@ -1,11 +1,9 @@
 package io.confluent.kafka.connect.cdc;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.confluent.kafka.connect.utils.config.MarkdownFormatter;
 import org.junit.jupiter.api.Test;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class CDCSourceConnectorConfigTest {

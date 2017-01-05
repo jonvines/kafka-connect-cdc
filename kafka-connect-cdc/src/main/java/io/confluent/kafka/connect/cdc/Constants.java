@@ -1,10 +1,5 @@
 package io.confluent.kafka.connect.cdc;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-
-import java.util.Map;
-
 class Constants {
   public static final String METADATA_FIELD = "_cdc_metadata";
   public static final String DATABASE_NAME_VARIABLE = "databaseName";
