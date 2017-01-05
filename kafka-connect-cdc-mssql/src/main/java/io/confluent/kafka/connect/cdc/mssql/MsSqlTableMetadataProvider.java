@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.CachingTableMetadataProvider;
 import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.ChangeKey;
+import io.confluent.kafka.connect.cdc.JdbcUtils;
 import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Schema;
@@ -16,7 +17,7 @@ import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
+import javax.sql.PooledConnection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,13 +47,15 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
       log.info("{}: querying database for metadata.", changeKey);
     }
 
-    try (Connection connection = openConnection()) {
+    PooledConnection pooledConnection = null;
+    try {
+      pooledConnection = JdbcUtils.openPooledConnection(this.config, changeKey);
       if (log.isTraceEnabled()) {
         log.trace("{}: Querying for primary keys.", changeKey);
       }
 
       Set<String> keyColumns = new LinkedHashSet<>();
-      try (PreparedStatement primaryKeyStatement = connection.prepareStatement(PRIMARY_KEY_SQL)) {
+      try (PreparedStatement primaryKeyStatement = pooledConnection.getConnection().prepareStatement(PRIMARY_KEY_SQL)) {
         primaryKeyStatement.setString(1, changeKey.schemaName);
         primaryKeyStatement.setString(2, changeKey.tableName);
         try (ResultSet resultSet = primaryKeyStatement.executeQuery()) {
@@ -67,7 +70,7 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
       }
 
       Map<String, Schema> columnSchemas = new LinkedHashMap<>();
-      try (PreparedStatement columnDefinitionStatement = connection.prepareStatement(COLUMN_DEFINITION_SQL)) {
+      try (PreparedStatement columnDefinitionStatement = pooledConnection.getConnection().prepareStatement(COLUMN_DEFINITION_SQL)) {
         columnDefinitionStatement.setString(1, changeKey.schemaName);
         columnDefinitionStatement.setString(2, changeKey.tableName);
         try (ResultSet resultSet = columnDefinitionStatement.executeQuery()) {
@@ -79,6 +82,8 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
         }
       }
       return new MsSqlTableMetadata(changeKey, keyColumns, columnSchemas);
+    } finally {
+      JdbcUtils.closeConnection(pooledConnection);
     }
   }
 
@@ -187,7 +192,7 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
   public Map<String, Object> startOffset(ChangeKey changeKey) throws SQLException {
     Map<String, Object> offset = (Map<String, Object>) cachedOffsets.get(changeKey);
 
-    if(log.isInfoEnabled()) {
+    if (log.isInfoEnabled()) {
       log.info("{}: Determining start offset.", changeKey);
     }
 
@@ -220,8 +225,10 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
       log.trace("{}: Querying database for offset.", changeKey);
     }
 
-    try (Connection connection = openConnection()) {
-      try (PreparedStatement statement = connection.prepareStatement(OFFSET_SQL)) {
+    PooledConnection pooledConnection = null;
+    try {
+      pooledConnection = JdbcUtils.openPooledConnection(this.config, changeKey);
+      try (PreparedStatement statement = pooledConnection.getConnection().prepareStatement(OFFSET_SQL)) {
         statement.setString(1, changeKey.schemaName);
         statement.setString(2, changeKey.tableName);
         try (ResultSet resultSet = statement.executeQuery()) {
@@ -239,6 +246,8 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
           }
         }
       }
+    } finally {
+      JdbcUtils.closeConnection(pooledConnection);
     }
 
     return offset;

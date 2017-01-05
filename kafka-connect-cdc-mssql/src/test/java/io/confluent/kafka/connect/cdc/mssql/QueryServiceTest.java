@@ -1,7 +1,6 @@
 package io.confluent.kafka.connect.cdc.mssql;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import io.confluent.kafka.connect.cdc.Change;
 import io.confluent.kafka.connect.cdc.ChangeKey;
 import io.confluent.kafka.connect.cdc.ChangeWriter;
@@ -10,20 +9,22 @@ import io.confluent.kafka.connect.cdc.JdbcUtils;
 import io.confluent.kafka.connect.cdc.JsonChangeList;
 import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 import io.confluent.kafka.connect.cdc.docker.DockerCompose;
-import io.confluent.kafka.connect.cdc.docker.DockerFormatString;
 import io.confluent.kafka.connect.cdc.mssql.docker.MsSqlClusterHealthCheck;
+import io.confluent.kafka.connect.cdc.mssql.docker.MsSqlSettings;
+import io.confluent.kafka.connect.cdc.mssql.docker.MsSqlSettingsExtension;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.connect.storage.OffsetStorageReader;
 import org.junit.experimental.categories.Category;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.PooledConnection;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.*;
 
 @Category(Integration.class)
 @DockerCompose(dockerComposePath = MsSqlTestConstants.DOCKER_COMPOSE_FILE, clusterHealthCheck = MsSqlClusterHealthCheck.class)
+@ExtendWith(MsSqlSettingsExtension.class)
 public class QueryServiceTest extends MsSqlTest {
   private static final Logger log = LoggerFactory.getLogger(QueryServiceTest.class);
 
@@ -48,20 +50,17 @@ public class QueryServiceTest extends MsSqlTest {
   MsSqlSourceConnectorConfig config;
 
   @BeforeEach
-  public void before(@DockerFormatString(container = MsSqlTestConstants.CONTAINER_NAME, port = MsSqlTestConstants.PORT, format = MsSqlTestConstants.JDBCURL_FORMAT_CDC_TESTING) String jdbcUrl) {
-    Map<String, String> settings = ImmutableMap.of(
-        MsSqlSourceConnectorConfig.JDBC_URL_CONF, jdbcUrl,
-        MsSqlSourceConnectorConfig.JDBC_USERNAME_CONF, MsSqlTestConstants.USERNAME,
-        MsSqlSourceConnectorConfig.JDBC_PASSWORD_CONF, MsSqlTestConstants.PASSWORD
-    );
+  public void before(@MsSqlSettings Map<String, String> settings) {
     config = new MsSqlSourceConnectorConfig(settings);
   }
 
   @TestFactory
   public Stream<DynamicTest> queryTable() throws SQLException {
     List<ChangeKey> changeCaptureTables = new ArrayList<>();
-    try (Connection connection = JdbcUtils.openConnection(this.config)) {
-      MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(connection);
+    PooledConnection pooledConnection = null;
+    try {
+      pooledConnection = JdbcUtils.openPooledConnection(this.config, new ChangeKey(MsSqlTestConstants.DATABASE_NAME, null, null));
+      MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(pooledConnection.getConnection());
       try (PreparedStatement statement = queryBuilder.listChangeTrackingTablesStatement()) {
         try (ResultSet resultSet = statement.executeQuery()) {
           while (resultSet.next()) {
@@ -76,6 +75,8 @@ public class QueryServiceTest extends MsSqlTest {
           }
         }
       }
+    } finally {
+      JdbcUtils.closeConnection(pooledConnection);
     }
 
     return changeCaptureTables.stream().map(data -> dynamicTest(data.tableName, () -> queryTable(data)));

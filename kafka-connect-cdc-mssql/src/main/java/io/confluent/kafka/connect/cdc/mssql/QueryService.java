@@ -13,7 +13,7 @@ import org.apache.kafka.common.utils.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
+import javax.sql.PooledConnection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -92,15 +92,18 @@ class QueryService extends AbstractExecutionThreadService {
   }
 
   void queryTable(ChangeWriter changeWriter, ChangeKey changeKey) throws SQLException {
-    try (Connection connection = JdbcUtils.openConnection(this.config)) {
+
+    PooledConnection pooledConnection = null;
+    try {
+      pooledConnection = JdbcUtils.openPooledConnection(this.config, changeKey);
       if (log.isTraceEnabled()) {
         log.trace("{}: Setting transaction level to 4096 (READ_COMMITTED_SNAPSHOT)", changeKey);
       }
-      connection.setTransactionIsolation(4096);
-      connection.setAutoCommit(false);
+      pooledConnection.getConnection().setTransactionIsolation(4096);
+      pooledConnection.getConnection().setAutoCommit(false);
 
       TableMetadataProvider.TableMetadata tableMetadata = this.tableMetadataProvider.tableMetadata(changeKey);
-      MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(connection);
+      MsSqlQueryBuilder queryBuilder = new MsSqlQueryBuilder(pooledConnection.getConnection());
 
       Map<String, Object> sourcePartition = Change.sourcePartition(changeKey);
       Map<String, Object> startOffset = this.tableMetadataProvider.startOffset(changeKey);
@@ -139,12 +142,13 @@ class QueryService extends AbstractExecutionThreadService {
           log.info("{}: Processed {} record(s).", changeKey, count);
         }
 
-      } finally {
-        if (log.isTraceEnabled()) {
-          log.trace("{}: calling connection.commit()", changeKey);
-        }
-        connection.commit();
       }
+    } finally {
+      if (log.isTraceEnabled()) {
+        log.trace("{}: calling connection.commit()", changeKey);
+      }
+      pooledConnection.getConnection().commit();
+      JdbcUtils.closeConnection(pooledConnection);
     }
   }
 }
