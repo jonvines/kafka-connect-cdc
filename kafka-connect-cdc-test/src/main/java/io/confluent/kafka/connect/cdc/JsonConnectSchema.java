@@ -2,42 +2,37 @@ package io.confluent.kafka.connect.cdc;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JsonConnectSchema {
-  @JsonProperty
   String name;
-  @JsonProperty
   String doc;
-  @JsonProperty
   Schema.Type type;
-  @JsonProperty
   Object defaultValue;
-  @JsonProperty
   Integer version;
-  @JsonProperty
   Map<String, String> parameters;
-  @JsonProperty
   boolean isOptional;
-
-  @JsonProperty
-  JsonConnectSchema keySchema;
-  @JsonProperty
-  JsonConnectSchema valueSchema;
+  Schema keySchema;
+  Schema valueSchema;
+  Map<String, Schema> fieldSchemas;
 
   public JsonConnectSchema() {
 
@@ -53,16 +48,42 @@ public class JsonConnectSchema {
     this.isOptional = schema.isOptional();
 
     if (Schema.Type.MAP == this.type) {
-      this.keySchema = new JsonConnectSchema(schema.keySchema());
-      this.valueSchema = new JsonConnectSchema(schema.valueSchema());
-    } else {
+      this.keySchema = schema.keySchema();
+      this.valueSchema = schema.valueSchema();
+    } else if (Schema.Type.ARRAY == this.type) {
       this.keySchema = null;
-      this.valueSchema = null;
+      this.valueSchema = schema.valueSchema();
+    } else if (Schema.Type.STRUCT == this.type) {
+      this.fieldSchemas = new LinkedHashMap<>();
+      for (Field field : schema.fields()) {
+        this.fieldSchemas.put(field.name(), field.schema());
+      }
     }
   }
 
   public Schema build() {
-    SchemaBuilder builder = SchemaBuilder.type(this.type);
+    SchemaBuilder builder;
+
+    switch (this.type) {
+      case MAP:
+        Preconditions.checkNotNull(this.keySchema, "keySchema cannot be null.");
+        Preconditions.checkNotNull(this.valueSchema, "valueSchema cannot be null.");
+        builder = SchemaBuilder.map(this.keySchema, this.valueSchema);
+        break;
+      case ARRAY:
+        Preconditions.checkNotNull(this.valueSchema, "valueSchema cannot be null.");
+        builder = SchemaBuilder.array(this.valueSchema);
+        break;
+      default:
+        builder = SchemaBuilder.type(this.type);
+        break;
+    }
+
+    if (Schema.Type.STRUCT == this.type) {
+      for (Map.Entry<String, Schema> kvp : this.fieldSchemas.entrySet()) {
+        builder.field(kvp.getKey(), kvp.getValue());
+      }
+    }
 
     if (!Strings.isNullOrEmpty(this.name)) {
       builder.name(this.name);
@@ -150,19 +171,20 @@ public class JsonConnectSchema {
     return true;
   }
 
-  public static class SchemaModule extends SimpleModule {
-    public SchemaModule() {
-      super();
-      addSerializer(Schema.class, new SchemaSerializer());
-      addDeserializer(Schema.class, new SchemaDeserializer());
-    }
-  }
-
-  static class SchemaSerializer extends JsonSerializer<Schema> {
+  static class Serializer extends JsonSerializer<Schema> {
     @Override
     public void serialize(Schema schema, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
       JsonConnectSchema jsonConnectSchema = new JsonConnectSchema(schema);
       jsonGenerator.writeObject(jsonConnectSchema);
+    }
+  }
+
+  static class Deserializer extends JsonDeserializer<Schema> {
+
+    @Override
+    public Schema deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+      JsonConnectSchema jsonConnectSchema = jsonParser.readValueAs(JsonConnectSchema.class);
+      return jsonConnectSchema.build();
     }
   }
 }

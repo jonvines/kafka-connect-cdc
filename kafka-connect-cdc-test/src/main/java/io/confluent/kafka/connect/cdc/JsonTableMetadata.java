@@ -1,115 +1,56 @@
 package io.confluent.kafka.connect.cdc;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.kafka.connect.data.Schema;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class JsonTableMetadata implements TableMetadataProvider.TableMetadata, NamedTest {
-  @JsonIgnore
-  String name;
+public class JsonTableMetadata {
   String databaseName;
   String schemaName;
   String tableName;
   Set<String> keyColumns;
   Map<String, Schema> columnSchemas;
 
-  public JsonTableMetadata() {
-  }
-
-  public JsonTableMetadata(String schemaName, String tableName, Set<String> keyColumns, Map<String, Schema> columnSchemas) {
-    this.schemaName = schemaName;
-    this.tableName = tableName;
-    this.keyColumns = keyColumns;
-    this.columnSchemas = columnSchemas;
-  }
-
-  public static JsonTableMetadata of(TableMetadataProvider.TableMetadata tableMetadata) {
-    JsonTableMetadata jsonTableMetadata = new JsonTableMetadata();
-    jsonTableMetadata.databaseName = tableMetadata.databaseName();
-    jsonTableMetadata.schemaName = tableMetadata.schemaName();
-    jsonTableMetadata.tableName = tableMetadata.tableName();
-    jsonTableMetadata.columnSchemas = tableMetadata.columnSchemas();
-    jsonTableMetadata.keyColumns = tableMetadata.keyColumns();
-    return jsonTableMetadata;
-  }
-
-  public static void write(File file, JsonTableMetadata change) throws IOException {
-    try (OutputStream outputStream = new FileOutputStream(file)) {
-      ObjectMapperFactory.instance.writeValue(outputStream, change);
+  static class Serializer extends JsonSerializer<TableMetadataProvider.TableMetadata> {
+    @Override
+    public void serialize(TableMetadataProvider.TableMetadata tableMetadata, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+      JsonTableMetadata storage = new JsonTableMetadata();
+      storage.databaseName = tableMetadata.databaseName();
+      storage.tableName = tableMetadata.tableName();
+      storage.schemaName = tableMetadata.schemaName();
+      storage.columnSchemas = tableMetadata.columnSchemas();
+      storage.keyColumns = tableMetadata.keyColumns();
+      jsonGenerator.writeObject(storage);
     }
   }
 
-  public static void write(OutputStream outputStream, JsonTableMetadata change) throws IOException {
-    ObjectMapperFactory.instance.writeValue(outputStream, change);
-  }
-
-  public static JsonTableMetadata read(InputStream inputStream) throws IOException {
-    return ObjectMapperFactory.instance.readValue(inputStream, JsonTableMetadata.class);
-  }
-
-  @Override
-  public String databaseName() {
-    return this.databaseName;
-  }
-
-  public void databaseName(String databaseName) {
-    this.databaseName = databaseName;
-  }
-
-  @Override
-  public String schemaName() {
-    return this.schemaName;
-  }
-
-  public void schemaName(String value) {
-    this.schemaName = value;
-  }
-
-  @Override
-  public String tableName() {
-    return this.tableName;
-  }
-
-  public void tableName(String value) {
-    this.tableName = value;
-  }
-
-  @Override
-  public Set<String> keyColumns() {
-    return this.keyColumns;
-  }
-
-  public void keyColumns(Set<String> value) {
-    this.keyColumns = value;
-  }
-
-  @Override
-  public Map<String, Schema> columnSchemas() {
-    return this.columnSchemas;
-  }
-
-  public void keyColumns(Map<String, Schema> value) {
-    this.columnSchemas = value;
-  }
-
-  @Override
-  public void name(String name) {
-    this.name = name;
-  }
-
-  @Override
-  public String name() {
-    return this.name;
+  static class Deserializer extends JsonDeserializer<TableMetadataProvider.TableMetadata> {
+    @Override
+    public TableMetadataProvider.TableMetadata deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+      JsonTableMetadata storage = jsonParser.readValueAs(JsonTableMetadata.class);
+      TableMetadataProvider.TableMetadata result = mock(TableMetadataProvider.TableMetadata.class);
+      when(result.databaseName()).thenReturn(storage.databaseName);
+      when(result.schemaName()).thenReturn(storage.schemaName);
+      when(result.tableName()).thenReturn(storage.tableName);
+      when(result.columnSchemas()).thenReturn(storage.columnSchemas);
+      when(result.keyColumns()).thenReturn(storage.keyColumns);
+      return result;
+    }
   }
 }

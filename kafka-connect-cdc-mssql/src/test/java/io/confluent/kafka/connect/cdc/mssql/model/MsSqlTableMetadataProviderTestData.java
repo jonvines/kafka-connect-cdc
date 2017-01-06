@@ -2,9 +2,9 @@ package io.confluent.kafka.connect.cdc.mssql.model;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.confluent.kafka.connect.cdc.JsonTableMetadata;
 import io.confluent.kafka.connect.cdc.NamedTest;
 import io.confluent.kafka.connect.cdc.ObjectMapperFactory;
+import io.confluent.kafka.connect.cdc.TableMetadataProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,7 +18,7 @@ public class MsSqlTableMetadataProviderTestData implements NamedTest {
   String databaseName;
   String schemaName;
   String tableName;
-  JsonTableMetadata expected;
+  TableMetadataProvider.TableMetadata expected;
 
   public static void write(File file, MsSqlTableMetadataProviderTestData testData) throws IOException {
     try (OutputStream outputStream = new FileOutputStream(file)) {
@@ -68,11 +68,11 @@ public class MsSqlTableMetadataProviderTestData implements NamedTest {
     this.tableName = value;
   }
 
-  public JsonTableMetadata expected() {
+  public TableMetadataProvider.TableMetadata expected() {
     return this.expected;
   }
 
-  public void expected(JsonTableMetadata value) {
+  public void expected(TableMetadataProvider.TableMetadata value) {
     this.expected = value;
   }
 }

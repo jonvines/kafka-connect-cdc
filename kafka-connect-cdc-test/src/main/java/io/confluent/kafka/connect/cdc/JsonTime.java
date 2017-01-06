@@ -2,43 +2,48 @@ package io.confluent.kafka.connect.cdc;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.kafka.common.utils.Time;
 
+import java.io.IOException;
 import java.util.Date;
+
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class JsonTime implements Time {
+public class JsonTime {
   long milliseconds;
 
-  public JsonTime() {
-
+  static class Serializer extends JsonSerializer<Time> {
+    @Override
+    public void serialize(Time time, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+      JsonTime result = new JsonTime();
+      result.milliseconds = time.milliseconds();
+      jsonGenerator.writeObject(result);
+    }
   }
 
-  public JsonTime(long milliseconds) {
-    this.milliseconds = milliseconds;
-  }
-
-  public JsonTime(Date date) {
-    this.milliseconds = date.getTime();
-  }
-
-  @Override
-  public long milliseconds() {
-    return this.milliseconds;
-  }
-
-  @Override
-  public long nanoseconds() {
-    return this.milliseconds * 1000;
-  }
-
-  @Override
-  public void sleep(long l) {
-    try {
-      Thread.sleep(l);
-    } catch (InterruptedException e) {
-
+  static class Deserializer extends JsonDeserializer<Time> {
+    @Override
+    public Time deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+      JsonTime storage = jsonParser.readValueAs(JsonTime.class);
+      Time result = mock(Time.class);
+      when(result.milliseconds()).thenReturn(storage.milliseconds);
+      when(result.nanoseconds()).thenReturn(storage.milliseconds * 1000);
+      doAnswer(invocationOnMock -> {
+        Long l = invocationOnMock.getArgumentAt(0, Long.class);
+        Thread.sleep(l);
+        return null;
+      }).when(result).sleep(anyLong());
+      return result;
     }
   }
 }
