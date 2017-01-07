@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 
 class ValueHelper {
   static final Logger log = LoggerFactory.getLogger(ValueHelper.class);
+
   static Object int8(Object o) {
     if (o instanceof Long) {
       Number number = (Number) o;
@@ -173,6 +174,14 @@ class ValueHelper {
     return result;
   }
 
+  public static JsonColumnValue convert(Change.ColumnValue columnValue) {
+    JsonColumnValue jsonColumnValue = new JsonColumnValue();
+    jsonColumnValue.columnName = columnValue.columnName();
+    jsonColumnValue.schema = columnValue.schema();
+    jsonColumnValue.value(columnValue.value());
+    return jsonColumnValue;
+  }
+
   public Object convert(Object value) {
     Object result;
     if (value instanceof java.sql.Date) {
@@ -182,13 +191,5 @@ class ValueHelper {
       result = value;
     }
     return result;
-  }
-
-  public static JsonColumnValue convert(Change.ColumnValue columnValue) {
-    JsonColumnValue jsonColumnValue = new JsonColumnValue();
-    jsonColumnValue.columnName = columnValue.columnName();
-    jsonColumnValue.schema = columnValue.schema();
-    jsonColumnValue.value(columnValue.value());
-    return jsonColumnValue;
   }
 }

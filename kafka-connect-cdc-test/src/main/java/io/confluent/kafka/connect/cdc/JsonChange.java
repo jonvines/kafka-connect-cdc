@@ -37,6 +37,22 @@ public class JsonChange {
   @JsonProperty
   List<Change.ColumnValue> valueColumns = new ArrayList<>();
 
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this.getClass())
+        .add("schemaName", this.schemaName)
+        .add("tableName", this.tableName)
+        .add("changeType", this.changeType)
+        .add("metadata", this.metadata)
+        .add("sourcePartition", this.sourcePartition)
+        .add("sourceOffset", this.sourceOffset)
+        .add("timestamp", this.timestamp)
+        .add("keyColumns", this.keyColumns)
+        .add("valueColumns", this.valueColumns)
+        .omitNullValues()
+        .toString();
+  }
+
   static class Serializer extends JsonSerializer<Change> {
     @Override
     public void serialize(Change change, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
@@ -72,21 +88,5 @@ public class JsonChange {
       when(result.valueColumns()).thenReturn(storage.valueColumns);
       return result;
     }
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this.getClass())
-        .add("schemaName", this.schemaName)
-        .add("tableName", this.tableName)
-        .add("changeType", this.changeType)
-        .add("metadata", this.metadata)
-        .add("sourcePartition", this.sourcePartition)
-        .add("sourceOffset", this.sourceOffset)
-        .add("timestamp", this.timestamp)
-        .add("keyColumns", this.keyColumns)
-        .add("valueColumns", this.valueColumns)
-        .omitNullValues()
-        .toString();
   }
 }

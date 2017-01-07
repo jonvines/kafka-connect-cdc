@@ -1,14 +1,5 @@
 package io.confluent.kafka.connect.cdc;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.kafka.connect.data.Schema;
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import static io.confluent.kafka.connect.cdc.ChangeAssertions.assertChange;
-
 public class JsonChangeTest {
 
 //  @Test

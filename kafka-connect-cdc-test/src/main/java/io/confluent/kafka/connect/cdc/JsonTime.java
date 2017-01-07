@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import org.apache.kafka.common.utils.Time;
 
 import java.io.IOException;
-import java.util.Date;
 
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
