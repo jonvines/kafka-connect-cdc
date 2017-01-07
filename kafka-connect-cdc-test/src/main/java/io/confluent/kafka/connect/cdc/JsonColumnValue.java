@@ -3,12 +3,13 @@ package io.confluent.kafka.connect.cdc;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.google.common.base.Preconditions;
 import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.Struct;
 
 import java.io.IOException;
 
@@ -19,19 +20,41 @@ import static org.mockito.Mockito.when;
 public class JsonColumnValue {
   String columnName;
   Schema schema;
+
+  Struct struct;
   Object value;
 
+
   void value(Object value) {
-    this.value = value;
+    switch (this.schema.type()) {
+      case STRUCT:
+        Preconditions.checkState(value instanceof Struct, "value must be a struct.");
+        this.struct = (Struct) value;
+        break;
+      default:
+        this.value = value;
+        break;
+    }
   }
 
   Object value() {
-    return ValueHelper.value(this.schema, this.value);
+    Object result;
+
+    switch (this.schema.type()) {
+      case STRUCT:
+        result = this.struct;
+        break;
+      default:
+        result = ValueHelper.value(this.schema, this.value);
+        break;
+    }
+
+    return result;
   }
 
   static class Serializer extends JsonSerializer<Change.ColumnValue> {
     @Override
-    public void serialize(Change.ColumnValue columnValue, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException, JsonProcessingException {
+    public void serialize(Change.ColumnValue columnValue, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
       JsonColumnValue result = new JsonColumnValue();
       result.columnName = columnValue.columnName();
       result.schema = columnValue.schema();
@@ -42,12 +65,12 @@ public class JsonColumnValue {
 
   static class Deserializer extends JsonDeserializer<Change.ColumnValue> {
     @Override
-    public Change.ColumnValue deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-      JsonColumnValue storage = jsonParser.readValueAs(JsonColumnValue.class);
+    public Change.ColumnValue deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+      final JsonColumnValue storage = jsonParser.readValueAs(JsonColumnValue.class);
       Change.ColumnValue result = mock(Change.ColumnValue.class);
       when(result.columnName()).thenReturn(storage.columnName);
       when(result.schema()).thenReturn(storage.schema);
-      when(result.value()).thenReturn(storage.value());
+      when(result.value()).thenAnswer(invocationOnMock -> storage.value());
       return result;
     }
   }

@@ -5,6 +5,8 @@ import com.google.common.io.Files;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.util.FilterBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +21,8 @@ import java.util.Random;
 import java.util.Set;
 
 public class TestDataUtils {
+  private static final Logger log = LoggerFactory.getLogger(TestDataUtils.class);
+
   static Random random = new SecureRandom();
 
   public static BigDecimal randomBigDecimal(int scale) {
@@ -38,12 +42,18 @@ public class TestDataUtils {
     Path packagePath = Paths.get("/" + packageName.replace(".", "/"));
 
     for (String resource : resources) {
+      log.trace("Loading resource {}", resource);
       Path resourcePath = Paths.get("/" + resource);
       Path relativePath = packagePath.relativize(resourcePath);
       File resourceFile = new File("/" + resource);
       T data;
       try (InputStream inputStream = cls.getResourceAsStream(resourceFile.getAbsolutePath())) {
         data = ObjectMapperFactory.instance.readValue(inputStream, cls);
+      } catch (IOException ex) {
+        if (log.isErrorEnabled()) {
+          log.error("Exception thrown while loading {}", resourcePath, ex);
+        }
+        throw ex;
       }
 
       String nameWithoutExtension = Files.getNameWithoutExtension(resource);

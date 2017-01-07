@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static io.confluent.kafka.connect.cdc.ChangeAssertions.assertSchema;
+import static io.confluent.kafka.connect.cdc.KafkaAssert.assertSchema;
 
 public class SerializerTest {
   @Test

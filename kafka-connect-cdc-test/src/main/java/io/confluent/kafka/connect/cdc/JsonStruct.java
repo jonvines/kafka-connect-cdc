@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.google.common.base.Preconditions;
 import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
@@ -22,18 +23,47 @@ public class JsonStruct {
   Schema schema;
   List<FieldValue> fieldValues;
 
+  public static Struct struct(JsonStruct storage) {
+    Struct struct = new Struct(storage.schema);
+    for (FieldValue fieldValue : storage.fieldValues) {
+      struct.put(fieldValue.name, fieldValue.value());
+    }
+    struct.validate();
+    return struct;
+  }
+
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
   public static class FieldValue {
     String name;
     Schema schema;
     private Object storage;
+    private Struct struct;
 
     void value(Object value) {
-      this.storage = value;
+      switch (this.schema.type()) {
+        case STRUCT:
+          Preconditions.checkState(value instanceof Struct, "value must be a struct.");
+          this.struct = (Struct) value;
+          break;
+        default:
+          this.storage = value;
+          break;
+      }
     }
 
     Object value() {
-      return ValueHelper.value(this.schema, this.storage);
+      Object result;
+
+      switch (this.schema.type()) {
+        case STRUCT:
+          result = this.struct;
+          break;
+        default:
+          result = ValueHelper.value(this.schema, this.storage);
+          break;
+      }
+
+      return result;
     }
   }
 
@@ -59,13 +89,10 @@ public class JsonStruct {
     @Override
     public Struct deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
       JsonStruct storage = jsonParser.readValueAs(JsonStruct.class);
-      Struct struct = new Struct(storage.schema);
-      for (FieldValue fieldValue : storage.fieldValues) {
-        struct.put(fieldValue.name, fieldValue.value());
-      }
-      struct.validate();
+      Struct struct = struct(storage);
       return struct;
     }
   }
+
 
 }

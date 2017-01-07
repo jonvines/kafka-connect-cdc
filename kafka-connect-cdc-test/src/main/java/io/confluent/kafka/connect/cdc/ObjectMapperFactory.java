@@ -24,14 +24,19 @@ public class ObjectMapperFactory {
     SimpleModule schemaModule = new SimpleModule();
     schemaModule.addSerializer(Schema.class, new JsonConnectSchema.Serializer());
     schemaModule.addDeserializer(Schema.class, new JsonConnectSchema.Deserializer());
+
     schemaModule.addSerializer(Struct.class, new JsonStruct.Serializer());
     schemaModule.addDeserializer(Struct.class, new JsonStruct.Deserializer());
+
     schemaModule.addSerializer(TableMetadataProvider.TableMetadata.class, new JsonTableMetadata.Serializer());
     schemaModule.addDeserializer(TableMetadataProvider.TableMetadata.class, new JsonTableMetadata.Deserializer());
+
     schemaModule.addSerializer(Change.ColumnValue.class, new JsonColumnValue.Serializer());
     schemaModule.addDeserializer(Change.ColumnValue.class, new JsonColumnValue.Deserializer());
+
     schemaModule.addSerializer(Change.class, new JsonChange.Serializer());
     schemaModule.addDeserializer(Change.class, new JsonChange.Deserializer());
+
     schemaModule.addSerializer(Time.class, new JsonTime.Serializer());
     schemaModule.addDeserializer(Time.class, new JsonTime.Deserializer());
 

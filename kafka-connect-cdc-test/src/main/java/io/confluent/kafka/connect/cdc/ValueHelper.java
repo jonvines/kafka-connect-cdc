@@ -6,10 +6,13 @@ import org.apache.kafka.connect.data.Decimal;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Time;
 import org.apache.kafka.connect.data.Timestamp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 
 class ValueHelper {
+  static final Logger log = LoggerFactory.getLogger(ValueHelper.class);
   static Object int8(Object o) {
     if (o instanceof Long) {
       Number number = (Number) o;
@@ -160,6 +163,8 @@ class ValueHelper {
       case FLOAT64:
         result = float64(value);
         break;
+      case STRUCT:
+        log.trace("struct");
       default:
         result = value;
         break;
