@@ -144,10 +144,13 @@ class QueryService extends AbstractExecutionThreadService {
 
       }
     } finally {
-      if (log.isTraceEnabled()) {
-        log.trace("{}: calling connection.commit()", changeKey);
+      if(null!=pooledConnection) {
+        if (log.isTraceEnabled()) {
+          log.trace("{}: calling connection.commit()", changeKey);
+        }
+        pooledConnection.getConnection().commit();
       }
-      pooledConnection.getConnection().commit();
+
       JdbcUtils.closeConnection(pooledConnection);
     }
   }
