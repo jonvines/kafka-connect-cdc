@@ -83,12 +83,12 @@ public abstract class CDCSourceTask<Conf extends CDCSourceConnectorConfig> exten
 
   @Override
   public void addChange(Change change) {
-    if (log.isDebugEnabled()) {
-      log.debug("Adding change {}", change);
+    if (log.isTraceEnabled()) {
+      log.trace("Adding change {}", change);
     }
     if (Change.ChangeType.DELETE == change.changeType()) {
-      if (log.isDebugEnabled()) {
-        log.debug("Dropping delete. This will be potentially supported later.");
+      if (log.isTraceEnabled()) {
+        log.trace("Dropping delete. This will be potentially supported later.");
       }
       return;
     }
