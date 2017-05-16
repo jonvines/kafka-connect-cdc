@@ -79,6 +79,16 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
 
     String topic = this.schemaGenerator.topic(change);
 
+    final Struct key = structPair.getKey();
+    final Struct value;
+
+    if (Change.ChangeType.DELETE == change.changeType()) {
+      log.trace("createRecord() - Processing delete");
+      value = null;
+    } else {
+      value = structPair.getValue();
+    }
+
     //TODO: Correct topicFormat pattern
 
     SourceRecord sourceRecord = new SourceRecord(
@@ -87,9 +97,9 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
         topic,
         null,
         schemaPair.getKey().schema,
-        structPair.getKey(),
+        key,
         schemaPair.getValue().schema,
-        structPair.getValue(),
+        value,
         change.timestamp()
     );
 
@@ -99,10 +109,6 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
   @Override
   public void addChange(Change change) {
     log.trace("addChange() - Adding change {}", change);
-    if (Change.ChangeType.DELETE == change.changeType()) {
-      log.trace("addChange() - Dropping delete. This will be potentially supported later.");
-      return;
-    }
     SchemaPair schemaPair = this.schemaGenerator.schemas(change);
     SourceRecord record = createRecord(schemaPair, change);
     this.changes.add(record);
