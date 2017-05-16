@@ -15,12 +15,16 @@
 # limitations under the License.
 #
 
+: ${SUSPEND:='n'}
+
+set -e
+
+cd ..
 mvn clean package -DskipTests
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-ORACLE_DIR="${DIR}/oracle"
-export CLASSPATH="$(find target/ -type f -name '*.jar'| grep '\-package' | tr '\n' ':')"
-export KAFKA_OPTS="-Djava.library.path=${ORACLE_DIR}"
-export KAFKA_JMX_OPTS='-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'
+cd $OLDPWD
 
-$CONFLUENT_HOME/bin/connect-standalone connect/connect-avro-docker.properties config/xstreamsource.properties
+export KAFKA_JMX_OPTS="-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=${SUSPEND},address=5005"
+export CLASSPATH="$(find target/kafka-connect-target/usr/share/java -type f -name '*.jar' | tr '\n' ':')"
+
+connect-standalone connect/connect-avro-docker.properties config/mssqlsource.properties
