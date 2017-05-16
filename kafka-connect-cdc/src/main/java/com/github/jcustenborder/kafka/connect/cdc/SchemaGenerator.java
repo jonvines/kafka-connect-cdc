@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -273,12 +272,7 @@ class SchemaGenerator {
 
     ChangeKey changeKey = new ChangeKey(change);
     try {
-      return this.schemaPairCache.get(changeKey, new Callable<SchemaPair>() {
-        @Override
-        public SchemaPair call() throws Exception {
-          return generateSchemas(change);
-        }
-      });
+      return this.schemaPairCache.get(changeKey, () -> generateSchemas(change));
     } catch (ExecutionException e) {
       throw new DataException("Exception thrown while building schemas.", e);
     }
@@ -293,12 +287,7 @@ class SchemaGenerator {
 
     ChangeKey changeKey = new ChangeKey(change);
     try {
-      return this.topicNameCache.get(changeKey, new Callable<String>() {
-        @Override
-        public String call() throws Exception {
-          return generateTopicName(change);
-        }
-      });
+      return this.topicNameCache.get(changeKey, () -> generateTopicName(change));
     } catch (ExecutionException e) {
       throw new DataException("Exception thrown while building schemas.", e);
     }
