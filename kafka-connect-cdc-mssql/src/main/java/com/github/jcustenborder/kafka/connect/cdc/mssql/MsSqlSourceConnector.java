@@ -16,6 +16,7 @@
 package com.github.jcustenborder.kafka.connect.cdc.mssql;
 
 import com.github.jcustenborder.kafka.connect.cdc.CDCSourceConnector;
+import com.github.jcustenborder.kafka.connect.utils.config.Description;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -27,6 +28,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@Description("The Microsoft SQL Server connector utilizes [Change Tracking](https://msdn.microsoft.com/en-us/library/bb933875.aspx) " +
+    "to identify changes. There are two ways to read the changes from the source system as they are generated. " +
+    "[Change Data Capture](https://msdn.microsoft.com/en-us/library/cc645937.aspx) is a feature that is only available " +
+    "on SQL Server Enterprise and Developer editions. [Change Tracking](https://msdn.microsoft.com/en-us/library/bb933875.aspx) " +
+    "is a lightweight solution that will efficiently find rows that have changed. If the rows are modified in quick " +
+    "succession all of the changes might not be found. The latest version of the change will be returned.")
 public class MsSqlSourceConnector extends CDCSourceConnector {
 
   Map<String, String> settings;
