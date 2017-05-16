@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.connect.data.Date;
 import org.apache.kafka.connect.data.Schema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,6 +35,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 class MsSqlChange implements Change {
+  private static final Logger log = LoggerFactory.getLogger(MsSqlChange.class);
   Map<String, String> metadata;
   Map<String, Object> sourcePartition;
   Map<String, Object> sourceOffset;
@@ -195,13 +198,14 @@ class MsSqlChange implements Change {
           change.changeType = ChangeType.UPDATE;
           break;
         case "D":
-          change.changeType = ChangeType.UPDATE;
+          change.changeType = ChangeType.DELETE;
           break;
         default:
           throw new UnsupportedOperationException(
               String.format("Unsupported sys_change_operation of '%s'", changeOperation)
           );
       }
+      log.trace("build() - changeType = {}", change.changeType);
 
       change.keyColumns = new ArrayList<>(tableMetadata.keyColumns().size());
       change.valueColumns = new ArrayList<>(tableMetadata.columnSchemas().size());
@@ -228,17 +232,12 @@ class MsSqlChange implements Change {
           value = resultSet.getObject(columnName);
         }
 
-
+        log.trace("build() - columnName = '{}' value = '{}'", columnName, value);
         MsSqlColumnValue columnValue = new MsSqlColumnValue(columnName, schema, value);
         change.valueColumns.add(columnValue);
         if (tableMetadata.keyColumns().contains(columnName)) {
           change.keyColumns.add(columnValue);
         }
-      }
-
-      //Revisit this. Pretty lame.
-      if (ChangeType.DELETE == change.changeType) {
-        change.valueColumns.clear();
       }
 
       return change;

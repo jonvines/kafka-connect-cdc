@@ -37,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class QueryService extends AbstractExecutionThreadService {
-  static final Pattern CHANGE_TRACKING_TABLE_PATTERN = Pattern.compile("^([^\\.]+)\\.([^\\.]+)\\.([^\\.]+)$");
+  static final Pattern CHANGE_TRACKING_TABLE_PATTERN = Pattern.compile("^([^\\.]+)\\.([^\\.]+)$");
   private static final Logger log = LoggerFactory.getLogger(QueryService.class);
   final Time time;
   final TableMetadataProvider tableMetadataProvider;
@@ -54,11 +54,10 @@ class QueryService extends AbstractExecutionThreadService {
 
   ChangeKey changeKey(String changeTrackingTable) {
     Matcher matcher = CHANGE_TRACKING_TABLE_PATTERN.matcher(changeTrackingTable);
-    Preconditions.checkState(matcher.matches(), "'%s' is not formatted in properly. Use 'schemaName.databaseName.tableName'.");
-    String databaseName = matcher.group(1);
-    String schemaName = matcher.group(2);
-    String tableName = matcher.group(3);
-    return new ChangeKey(databaseName, schemaName, tableName);
+    Preconditions.checkState(matcher.matches(), "'%s' is not formatted in properly. Use 'schemaName.databaseName.tableName'.", changeTrackingTable);
+    String schemaName = matcher.group(1);
+    String tableName = matcher.group(2);
+    return new ChangeKey(this.config.initialDatabase, schemaName, tableName);
   }
 
   @Override

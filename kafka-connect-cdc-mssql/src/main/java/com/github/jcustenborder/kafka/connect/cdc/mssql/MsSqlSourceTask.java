@@ -25,7 +25,7 @@ import org.apache.kafka.connect.storage.OffsetStorageReader;
 
 import java.util.Map;
 
-class MsSqlSourceTask extends BaseServiceTask<MsSqlSourceConnectorConfig> {
+public class MsSqlSourceTask extends BaseServiceTask<MsSqlSourceConnectorConfig> {
   ChangeWriter changeWriter;
   Time time = new SystemTime();
   TableMetadataProvider tableMetadataProvider;

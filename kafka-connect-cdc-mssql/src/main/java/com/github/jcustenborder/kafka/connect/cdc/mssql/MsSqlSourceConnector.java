@@ -16,13 +16,23 @@
 package com.github.jcustenborder.kafka.connect.cdc.mssql;
 
 import com.github.jcustenborder.kafka.connect.cdc.CDCSourceConnector;
+import com.github.jcustenborder.kafka.connect.cdc.JdbcUtils;
 import com.github.jcustenborder.kafka.connect.utils.config.Description;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
+import org.apache.kafka.connect.errors.ConnectException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.sql.PooledConnection;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,9 +45,10 @@ import java.util.Map;
     "is a lightweight solution that will efficiently find rows that have changed. If the rows are modified in quick " +
     "succession all of the changes might not be found. The latest version of the change will be returned.")
 public class MsSqlSourceConnector extends CDCSourceConnector {
-
+  private static final Logger log = LoggerFactory.getLogger(MsSqlSourceConnector.class);
   Map<String, String> settings;
   MsSqlSourceConnectorConfig config;
+  int taskCount;
 
   @Override
   public void start(Map<String, String> settings) {
@@ -53,16 +64,64 @@ public class MsSqlSourceConnector extends CDCSourceConnector {
   @Override
   public List<Map<String, String>> taskConfigs(int taskCount) {
     Preconditions.checkState(taskCount > 0, "At least one task is required");
+    this.taskCount = taskCount;
+
+    final List<String> changeTrackingTables;
+    if (null == this.config.changeTrackingTables || this.config.changeTrackingTables.isEmpty()) {
+      try {
+        PooledConnection pooledConnection = null;
+        try {
+          pooledConnection = JdbcUtils.openPooledConnection(this.config, null);
+          Connection connection = pooledConnection.getConnection();
+
+          final String sql = "SELECT s.name AS schema_name, t.name AS table_name, tr.is_track_columns_updated_on " +
+              "FROM sys.change_tracking_tables tr " +
+              "INNER JOIN sys.tables t ON t.object_id = tr.object_id " +
+              "INNER JOIN sys.schemas s ON s.schema_id = t.schema_id " +
+              "WHERE tr.is_track_columns_updated_on = 1";
+
+          List<String> tables = new ArrayList<>(1024);
+          try (Statement statement = connection.createStatement()) {
+            try (ResultSet resultSet = statement.executeQuery(sql)) {
+              while (resultSet.next()) {
+                final String schemaName = resultSet.getString(1);
+                final String tableName = resultSet.getString(2);
+                tables.add(
+                    String.format("%s.%s", schemaName, tableName)
+                );
+              }
+            }
+          }
+          changeTrackingTables = ImmutableList.copyOf(tables);
+        } finally {
+          JdbcUtils.closeConnection(pooledConnection);
+        }
+      } catch (SQLException e) {
+        throw new ConnectException(e);
+      }
+    } else {
+      changeTrackingTables = this.config.changeTrackingTables;
+    }
 
     List<Map<String, String>> taskConfigs = new ArrayList<>(taskCount);
-    for (Iterable<String> tables : Iterables.partition(this.config.changeTrackingTables, taskCount)) {
+    int index = 0;
+    for (Iterable<String> tables : Iterables.partition(changeTrackingTables, taskCount)) {
       if (Iterables.size(tables) == 0) {
         continue;
       }
+
+      final String tableConfig = Joiner.on(',').join(tables);
+      log.info(
+          "Setting task {} '{}' to '{}'",
+          index,
+          MsSqlSourceConnectorConfig.CHANGE_TRACKING_TABLES_CONFIG,
+          tableConfig
+      );
       Map<String, String> taskSettings = new LinkedHashMap<>();
       taskSettings.putAll(this.settings);
-      taskSettings.put(MsSqlSourceConnectorConfig.CHANGE_TRACKING_TABLES_CONFIG, Joiner.on(',').join(tables));
+      taskSettings.put(MsSqlSourceConnectorConfig.CHANGE_TRACKING_TABLES_CONFIG, tableConfig);
       taskConfigs.add(taskSettings);
+      index++;
     }
 
     return taskConfigs;

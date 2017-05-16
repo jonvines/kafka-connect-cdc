@@ -16,14 +16,23 @@
 package com.github.jcustenborder.kafka.connect.cdc.mssql;
 
 import com.github.jcustenborder.kafka.connect.cdc.TableMetadataProvider;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 class MsSqlQueryBuilder {
+  private static final Logger log = LoggerFactory.getLogger(MsSqlQueryBuilder.class);
   final Connection connection;
   final static String LIST_CHANGE_TRACKING_TABLES_SQL = "SELECT DB_NAME() AS [databaseName], " +
       "SCHEMA_NAME(OBJECTPROPERTY(object_id, 'SchemaId')) AS [schemaName], " +
@@ -35,6 +44,18 @@ class MsSqlQueryBuilder {
 
   MsSqlQueryBuilder(Connection connection) {
     this.connection = connection;
+  }
+
+  String joinSelect(String table, Collection<String> keyColumns) {
+    List<String> selectColumns = new ArrayList<>(keyColumns.size());
+
+    for (String keyColumn : keyColumns) {
+      selectColumns.add(
+          String.format("[%s].[%s]", table, keyColumn)
+      );
+    }
+
+    return Joiner.on(", ").join(selectColumns);
   }
 
   String joinCriteria(Set<String> keyColumns) {
@@ -58,12 +79,15 @@ class MsSqlQueryBuilder {
         tableMetadata.schemaName(),
         tableMetadata.tableName()
     );
+    Collection<String> valueColumns = Collections2.filter(tableMetadata.columnSchemas().keySet(), Predicates.not(Predicates.in(tableMetadata.keyColumns())));
+
     String joinCriteria = joinCriteria(tableMetadata.keyColumns());
     final String sql = String.format("SELECT " +
             "[ct].[sys_change_version] AS [__metadata_sys_change_version], " +
             "[ct].[sys_change_creation_version] AS [__metadata_sys_change_creation_version], " +
             "[ct].[sys_change_operation] AS [__metadata_sys_change_operation], " +
-            "[u].* " +
+            joinSelect("ct", tableMetadata.keyColumns()) + ", " +
+            joinSelect("u", valueColumns) + " " +
             "FROM [%s].[%s] AS [u] " +
             "RIGHT OUTER JOIN " +
             "CHANGETABLE(CHANGES [%s].[%s], ?) AS [ct] " +
@@ -74,6 +98,7 @@ class MsSqlQueryBuilder {
         tableMetadata.tableName(),
         joinCriteria
     );
+    log.trace("changeTrackingStatementQuery() - sql:\n{}", sql);
     return sql;
   }
 

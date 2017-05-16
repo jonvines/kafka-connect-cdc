@@ -195,7 +195,7 @@ class MsSqlTableMetadataProvider extends CachingTableMetadataProvider {
   public Map<String, Object> startOffset(ChangeKey changeKey) throws SQLException {
     Map<String, Object> offset = (Map<String, Object>) cachedOffsets.get(changeKey);
 
-    log.info("{}: Determining start offset.", changeKey);
+    log.trace("{}: Determining start offset.", changeKey);
 
     log.trace("{}: Checking local cache for offset.", changeKey);
 
