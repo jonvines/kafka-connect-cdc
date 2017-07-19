@@ -62,66 +62,70 @@ public interface Change {
   /**
    * Metadata for the change.
    *
-   * @return
+   * @return Metadata for the change.
    */
   Map<String, String> metadata();
 
   /**
-   * @return
+   * Source partition for change.
+   *
+   * @return Source partition for change.
    */
   Map<String, Object> sourcePartition();
 
   /**
-   * @return
+   * Source offset for the change.
+   *
+   * @return Source offset for the change.
    */
   Map<String, Object> sourceOffset();
 
   /**
    * Name of the database where the change originated from.
    *
-   * @return
+   * @return Name of the database where the change originated from.
    */
   String databaseName();
 
   /**
    * Schema where the change originated from.
    *
-   * @return
+   * @return Schema where the change originated from.
    */
   String schemaName();
 
   /**
    * Table that was changed.
    *
-   * @return
+   * @return Table that was changed.
    */
   String tableName();
 
   /**
    * The columns with data for the key of the record.
    *
-   * @return
+   * @return The columns with data for the key of the record.
    */
   List<ColumnValue> keyColumns();
 
   /**
    * The columns with data for the value of the record.
    *
-   * @return
+   * @return The columns with data for the value of the record.
    */
   List<ColumnValue> valueColumns();
 
   /**
    * Type of change
    *
-   * @return
+   * @return Type of change
    */
   ChangeType changeType();
 
   /**
    * Timestamp of when the transaction occurred.
    *
-   * @return
+   * @return Timestamp of when the transaction occurred.
    */
   long timestamp();
 
@@ -153,21 +157,21 @@ public interface Change {
     /**
      * Name of the column.
      *
-     * @return
+     * @return Name of the column.
      */
     String columnName();
 
     /**
      * Schema for the data.
      *
-     * @return
+     * @return Schema for the data.
      */
     Schema schema();
 
     /**
      * Value for the data.
      *
-     * @return
+     * @return Value for the data.
      */
     Object value();
   }

@@ -1,4 +1,0 @@
-CREATE TABLE money_table (
-  ID BIGSERIAL PRIMARY KEY NOT NULL,
-  value MONEY
-);

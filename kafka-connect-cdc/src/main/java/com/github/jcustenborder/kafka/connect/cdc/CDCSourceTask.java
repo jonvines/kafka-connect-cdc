@@ -19,6 +19,7 @@ import com.github.jcustenborder.kafka.connect.utils.data.SourceRecordConcurrentL
 import com.google.common.base.Preconditions;
 import org.apache.kafka.common.utils.SystemTime;
 import org.apache.kafka.common.utils.Time;
+import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -42,6 +43,7 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
 
 
   void setStructField(Struct struct, String field, Object value) {
+    log.trace("setStructField() - field = '{}' value = '{}'", field, value);
     try {
       struct.put(field, value);
     } catch (DataException ex) {
@@ -57,48 +59,51 @@ public abstract class CDCSourceTask<CONF extends CDCSourceConnectorConfig> exten
 
   SourceRecord createRecord(SchemaPair schemaPair, Change change) {
     Preconditions.checkNotNull(change.metadata(), "change.metadata() cannot return null.");
-    StructPair structPair = new StructPair(schemaPair);
+//    StructPair structPair = new StructPair(schemaPair);
+    final Struct key = new Struct(schemaPair.getKey().schema);
+    final Schema keySchema = key.schema();
+    final Struct value;
+    final Schema valueSchema;
+
+    log.trace("createRecord() - Setting key fields.");
     for (int i = 0; i < schemaPair.getKey().fields.size(); i++) {
       String fieldName = schemaPair.getKey().fields.get(i);
       Change.ColumnValue columnValue = change.keyColumns().get(i);
-      setStructField(structPair.getKey(), fieldName, columnValue.value());
+      setStructField(key, fieldName, columnValue.value());
     }
-
-    for (int i = 0; i < schemaPair.getValue().fields.size(); i++) {
-      String fieldName = schemaPair.getValue().fields.get(i);
-      Change.ColumnValue columnValue = change.valueColumns().get(i);
-      setStructField(structPair.getValue(), fieldName, columnValue.value());
-    }
-
-    Map<String, String> metadata = new LinkedHashMap<>(change.metadata().size() + 3);
-    metadata.putAll(change.metadata());
-    metadata.put(Constants.DATABASE_NAME_VARIABLE, change.databaseName());
-    metadata.put(Constants.SCHEMA_NAME_VARIABLE, change.schemaName());
-    metadata.put(Constants.TABLE_NAME_VARIABLE, change.tableName());
-    setStructField(structPair.getValue(), Constants.METADATA_FIELD, change.metadata());
-
-    String topic = this.schemaGenerator.topic(change);
-
-    final Struct key = structPair.getKey();
-    final Struct value;
 
     if (Change.ChangeType.DELETE == change.changeType()) {
-      log.trace("createRecord() - Processing delete");
+      log.trace("createRecord() - changeType is delete, setting value to null.");
       value = null;
+      valueSchema = null;
     } else {
-      value = structPair.getValue();
+      log.trace("createRecord() - Setting value fields.");
+      value = new Struct(schemaPair.getValue().schema);
+      valueSchema = value.schema();
+      for (int i = 0; i < schemaPair.getValue().fields.size(); i++) {
+        String fieldName = schemaPair.getValue().fields.get(i);
+        Change.ColumnValue columnValue = change.valueColumns().get(i);
+        setStructField(value, fieldName, columnValue.value());
+      }
+      log.trace("createRecord() - Setting metadata.");
+      Map<String, String> metadata = new LinkedHashMap<>(change.metadata().size() + 3);
+      metadata.putAll(change.metadata());
+      metadata.put(Constants.DATABASE_NAME_VARIABLE, change.databaseName());
+      metadata.put(Constants.SCHEMA_NAME_VARIABLE, change.schemaName());
+      metadata.put(Constants.TABLE_NAME_VARIABLE, change.tableName());
+      setStructField(value, Constants.METADATA_FIELD, change.metadata());
     }
 
-    //TODO: Correct topicFormat pattern
+    String topic = this.schemaGenerator.topic(change);
 
     SourceRecord sourceRecord = new SourceRecord(
         change.sourcePartition(),
         change.sourceOffset(),
         topic,
         null,
-        schemaPair.getKey().schema,
+        keySchema,
         key,
-        schemaPair.getValue().schema,
+        valueSchema,
         value,
         change.timestamp()
     );
