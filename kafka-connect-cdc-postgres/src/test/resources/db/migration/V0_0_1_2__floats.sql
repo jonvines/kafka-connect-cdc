@@ -1,9 +1,0 @@
-CREATE TABLE real_table (
-  ID BIGSERIAL PRIMARY KEY NOT NULL,
-  value REAL
-);
-
-CREATE TABLE double_precision_table (
-  ID BIGSERIAL PRIMARY KEY NOT NULL,
-  value DOUBLE PRECISION
-);
