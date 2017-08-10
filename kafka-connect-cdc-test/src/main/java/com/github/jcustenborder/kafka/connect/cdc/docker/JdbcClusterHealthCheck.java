@@ -65,6 +65,7 @@ public class JdbcClusterHealthCheck implements ClusterHealthCheck {
             final DockerPort dockerPort = container.port(port);
             final String jdbcUrl = dockerPort.inFormat(jdbcUrlFormat);
 
+            log.trace("Container Ip = {}", dockerPort.getIp());
             if (!dockerPort.isListeningNow()) {
               log.trace("Port {} is not listening on container {}.", port, containerName);
               return false;
