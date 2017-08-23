@@ -25,7 +25,6 @@ import com.palantir.docker.compose.connection.waiting.ClusterWait;
 import org.joda.time.Duration;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ContainerExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
@@ -60,7 +59,7 @@ public class DockerExtension implements BeforeAllCallback, AfterAllCallback, Par
   }
 
   @Override
-  public void beforeAll(ContainerExtensionContext containerExtensionContext) throws Exception {
+  public void beforeAll(ExtensionContext containerExtensionContext) throws Exception {
     Class<?> testClass = containerExtensionContext.getTestClass().get();
     ExtensionContext.Namespace namespace = namespace(containerExtensionContext);
     DockerCompose dockerCompose = findDockerComposeAnnotation(containerExtensionContext);
@@ -86,49 +85,11 @@ public class DockerExtension implements BeforeAllCallback, AfterAllCallback, Par
   }
 
   @Override
-  public void afterAll(ContainerExtensionContext containerExtensionContext) throws Exception {
+  public void afterAll(ExtensionContext containerExtensionContext) throws Exception {
     ExtensionContext.Namespace namespace = namespace(containerExtensionContext);
     ExtensionContext.Store store = containerExtensionContext.getStore(namespace);
     DockerComposeRule dockerComposeRule = store.get(STORE_SLOT_RULE, DockerComposeRule.class);
     dockerComposeRule.after();
-  }
-
-  @Override
-  public boolean supports(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-    return
-        parameterContext.getParameter().isAnnotationPresent(DockerFormatString.class) ||
-            parameterContext.getParameter().isAnnotationPresent(DockerContainer.class) ||
-            parameterContext.getParameter().isAnnotationPresent(com.github.jcustenborder.kafka.connect.cdc.docker.DockerPort.class) ||
-            parameterContext.getParameter().isAnnotationPresent(com.github.jcustenborder.kafka.connect.cdc.docker.DockerHost.class);
-  }
-
-  @Override
-  public Object resolve(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-    ExtensionContext.Namespace namespace = namespace(extensionContext);
-    ExtensionContext.Store store = extensionContext.getStore(namespace);
-    Object result = null;
-    DockerComposeRule docker = store.get(STORE_SLOT_RULE, DockerComposeRule.class);
-
-    Annotation[] annotations = parameterContext.getParameter().getAnnotations();
-
-    log.trace("Found {} annotations for {}", annotations.length, parameterContext.getParameter().getName());
-
-    for (Annotation annotation : annotations) {
-      if (annotation instanceof DockerFormatString) {
-        result = dockerFormatString(docker, annotation);
-        break;
-      } else if (annotation instanceof DockerContainer) {
-        result = dockerContainer(docker, annotation);
-        break;
-      } else if (annotation instanceof com.github.jcustenborder.kafka.connect.cdc.docker.DockerPort) {
-        result = dockerPort(docker, annotation);
-        break;
-      } else if (annotation instanceof DockerHost) {
-        result = dockerHost(docker, annotation);
-        break;
-      }
-    }
-    return result;
   }
 
   private Object dockerHost(DockerComposeRule docker, Annotation annotation) {
@@ -156,5 +117,43 @@ public class DockerExtension implements BeforeAllCallback, AfterAllCallback, Par
     Container container = docker.containers().container(dockerFormatString.container());
     DockerPort dockerPort = container.port(dockerFormatString.port());
     return dockerPort.inFormat(dockerFormatString.format());
+  }
+
+  @Override
+  public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    return
+        parameterContext.getParameter().isAnnotationPresent(DockerFormatString.class) ||
+            parameterContext.getParameter().isAnnotationPresent(DockerContainer.class) ||
+            parameterContext.getParameter().isAnnotationPresent(com.github.jcustenborder.kafka.connect.cdc.docker.DockerPort.class) ||
+            parameterContext.getParameter().isAnnotationPresent(com.github.jcustenborder.kafka.connect.cdc.docker.DockerHost.class);
+  }
+
+  @Override
+  public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    ExtensionContext.Namespace namespace = namespace(extensionContext);
+    ExtensionContext.Store store = extensionContext.getStore(namespace);
+    Object result = null;
+    DockerComposeRule docker = store.get(STORE_SLOT_RULE, DockerComposeRule.class);
+
+    Annotation[] annotations = parameterContext.getParameter().getAnnotations();
+
+    log.trace("Found {} annotations for {}", annotations.length, parameterContext.getParameter().getName());
+
+    for (Annotation annotation : annotations) {
+      if (annotation instanceof DockerFormatString) {
+        result = dockerFormatString(docker, annotation);
+        break;
+      } else if (annotation instanceof DockerContainer) {
+        result = dockerContainer(docker, annotation);
+        break;
+      } else if (annotation instanceof com.github.jcustenborder.kafka.connect.cdc.docker.DockerPort) {
+        result = dockerPort(docker, annotation);
+        break;
+      } else if (annotation instanceof DockerHost) {
+        result = dockerHost(docker, annotation);
+        break;
+      }
+    }
+    return result;
   }
 }

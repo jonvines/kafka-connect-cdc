@@ -32,7 +32,7 @@ public abstract class SettingsExtension implements ParameterResolver {
   protected abstract List<Class<? extends Annotation>> annotationClasses();
 
   @Override
-  public boolean supports(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+  public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
     boolean result = false;
     for (Class<? extends Annotation> annotationClass : annotationClasses()) {
       log.trace("Checking if {} is annotated with {}.", parameterContext.getDeclaringExecutable().getName(), annotationClass.getName());
@@ -47,7 +47,7 @@ public abstract class SettingsExtension implements ParameterResolver {
   }
 
   @Override
-  public Object resolve(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+  public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
     ExtensionContext.Namespace namespace = DockerExtension.namespace(extensionContext);
     ExtensionContext.Store store = extensionContext.getStore(namespace);
     DockerComposeRule dockerComposeRule = store.get(DockerExtension.STORE_SLOT_RULE, DockerComposeRule.class);
